@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # coding=utf-8
-# pylint: disable=I0011,R0903,W0702
+# pylint: disable=I0011,R0903,W0702,W0703
 
 #   Copyright 2019 getcarrier.io
 #
@@ -87,13 +87,19 @@ class ScanningPerformer(ModuleModel, PerformerModel):
                 performed.add(scanner_module_name)
                 perform_scan_iteration = True
                 scanner = self.context.scanners[scanner_module_name]
+                if scanner_module_name not in self.context.errors:
+                    self.context.errors[scanner_module_name] = list()
                 log.info(f"Running {scanner_module_name} ({scanner.get_description()})")
                 if reporting:
                     reporting.on_scanner_start(scanner_module_name)
                 try:
                     scanner.execute()
-                except:
+                except BaseException as exception:
                     log.exception("Scanner %s failed", scanner_module_name)
+                    self.context.errors[scanner_module_name].append(str(exception))
+                # Collect scanner results and errors
+                self.context.results.extend(scanner.get_results())
+                self.context.errors[scanner_module_name].extend(scanner.get_errors())
                 if reporting:
                     reporting.on_scanner_finish(scanner_module_name)
         if reporting:
@@ -110,6 +116,17 @@ class ScanningPerformer(ModuleModel, PerformerModel):
             return default
         except:
             return default
+
+    def set_module_meta(self, module, name, value):
+        """ Set submodule meta value """
+        try:
+            module_name = importlib.import_module(
+                f"dusty.scanners.{module}.scanner"
+            ).Scanner.get_name()
+            if module_name in self.context.scanners:
+                self.context.scanners[module_name].set_meta(name, value)
+        except:
+            pass
 
     def schedule_scanner(self, scanner_type, scanner_name, scanner_config):
         """ Schedule scanner run in current context after all already configured scanners """

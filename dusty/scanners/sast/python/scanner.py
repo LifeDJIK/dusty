@@ -58,6 +58,10 @@ class Scanner(DependentModuleModel, ScannerModel):
             return self.meta[name]
         return default
 
+    def set_meta(self, name, value):
+        """ Set meta value """
+        self.meta[name] = value
+
     @staticmethod
     def fill_config(data_obj):
         """ Make sample config """

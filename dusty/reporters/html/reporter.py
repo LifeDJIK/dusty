@@ -50,6 +50,10 @@ class Reporter(DependentModuleModel, ReporterModel):
             return self.meta[name]
         return default
 
+    def set_meta(self, name, value):
+        """ Set meta value """
+        self.meta[name] = value
+
     def on_start(self):
         """ Called when testing starts """
 

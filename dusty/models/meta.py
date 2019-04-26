@@ -27,3 +27,7 @@ class MetaModel:
     def get_meta(self, name, default=None):
         """ Get meta value """
         raise NotImplementedError()
+
+    def set_meta(self, name, value):
+        """ Set meta value """
+        raise NotImplementedError()

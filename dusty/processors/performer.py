@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # coding=utf-8
-# pylint: disable=I0011,R0903,W0702
+# pylint: disable=I0011,R0903,W0702,W0703
 
 #   Copyright 2019 getcarrier.io
 #
@@ -67,11 +67,6 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
     def perform(self):
         """ Perform action """
         log.info("Starting result processing")
-        # Collect all scanner results and errors
-        for scanner_module_name in self.context.scanners:
-            scanner = self.context.scanners[scanner_module_name]
-            self.context.results.extend(scanner.get_results())
-            self.context.errors[scanner_module_name] = scanner.get_errors()
         # Run processors
         performed = set()
         perform_processing_iteration = True
@@ -83,10 +78,14 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
                 performed.add(processor_module_name)
                 perform_processing_iteration = True
                 processor = self.context.processors[processor_module_name]
+                if processor_module_name not in self.context.errors:
+                    self.context.errors[processor_module_name] = list()
                 try:
                     processor.execute()
-                except:
+                except BaseException as exception:
                     log.exception("Processor %s failed", processor_module_name)
+                    self.context.errors[processor_module_name].append(str(exception))
+                self.context.errors[processor_module_name].extend(processor.get_errors())
 
     def get_module_meta(self, module, name, default=None):
         """ Get submodule meta value """
@@ -99,6 +98,17 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
             return default
         except:
             return default
+
+    def set_module_meta(self, module, name, value):
+        """ Set submodule meta value """
+        try:
+            module_name = importlib.import_module(
+                f"dusty.processors.{module}.processor"
+            ).Processor.get_name()
+            if module_name in self.context.processors:
+                self.context.processors[module_name].set_meta(name, value)
+        except:
+            pass
 
     def schedule_processor(self, processor_name, processor_config):
         """ Schedule processor run in current context after all already configured processors """

@@ -35,3 +35,7 @@ class PerformerModel:
     def get_module_meta(self, module, name, default=None):
         """ Get submodule meta value """
         raise NotImplementedError()
+
+    def set_module_meta(self, module, name, value):
+        """ Set submodule meta value """
+        raise NotImplementedError()

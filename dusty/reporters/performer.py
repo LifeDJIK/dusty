@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # coding=utf-8
-# pylint: disable=I0011,R0903,W0702
+# pylint: disable=I0011,R0903,W0702,W0703
 
 #   Copyright 2019 getcarrier.io
 #
@@ -86,6 +86,17 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
         except:
             return default
 
+    def set_module_meta(self, module, name, value):
+        """ Set submodule meta value """
+        try:
+            module_name = importlib.import_module(
+                f"dusty.reporters.{module}.reporter"
+            ).Reporter.get_name()
+            if module_name in self.context.reporters:
+                self.context.reporters[module_name].set_meta(name, value)
+        except:
+            pass
+
     def schedule_reporter(self, reporter_name, reporter_config):
         """ Schedule reporter run in current context after all already configured reporters """
         try:
@@ -131,10 +142,14 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
                 performed.add(reporter_module_name)
                 perform_report_iteration = True
                 reporter = self.context.reporters[reporter_module_name]
+                if reporter_module_name not in self.context.errors:
+                    self.context.errors[reporter_module_name] = list()
                 try:
                     reporter.report()
-                except:
+                except BaseException as exception:
                     log.exception("Reporter %s failed", reporter_module_name)
+                    self.context.errors[reporter_module_name].append(str(exception))
+                self.context.errors[reporter_module_name].extend(reporter.get_errors())
 
     def on_start(self):
         """ Called when testing starts """

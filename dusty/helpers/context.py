@@ -34,7 +34,7 @@ class RunContext:
         self.config = dict()
         self.suite = ""
         self.results = list()
-        self.errors = dict()  # scanner -> errors
+        self.errors = dict()  # scanner/processor/reporter -> errors
         self.scanners = LastUpdatedOrderedDict()  # scanner -> instance
         self.processors = LastUpdatedOrderedDict()  # processor -> instance
         self.reporters = LastUpdatedOrderedDict()  # reporter -> instance
