@@ -44,7 +44,6 @@ def main():
         action="store_true", default=False
     )
     parser = argparse.ArgumentParser(
-        parents=[parent],
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     subparsers = parser.add_subparsers(
