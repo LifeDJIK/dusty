@@ -29,8 +29,8 @@ def main():
     """ Adjust parameters and run main entry """
     sys.argv[0] = "dusty"
     sys.argv.insert(1, "run")
-    sys.argv.insert(1, "--call-from-legacy")
+    sys.argv.insert(2, "--call-from-legacy")
     if os.environ.get("debug", False):
-        sys.argv.insert(1, "--debug")
+        sys.argv.insert(3, "--debug")
     print(f"running: {sys.argv}")
     dusty.main.main()
