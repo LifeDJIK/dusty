@@ -20,7 +20,6 @@
     Reporting performer
 """
 
-import time
 import importlib
 import pkgutil
 
@@ -32,6 +31,8 @@ from dusty.models.module import ModuleModel
 from dusty.models.performer import PerformerModel
 from dusty.models.reporter import ReporterModel
 
+from . import constants
+
 
 class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
     """ Perform reporting """
@@ -39,17 +40,13 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
     def __init__(self, context):
         """ Initialize instance """
         self.context = context
-        self.testing_start_time = time.time()
-        self.testing_finish_time = time.time()
-        self.scanner_start_time = dict()
-        self.scanner_finish_time = dict()
 
     def prepare(self):
         """ Prepare for action """
         log.debug("Preparing")
         config = self.context.config["reporters"]
         # Schedule reporters
-        for reporter_name in config:
+        for reporter_name in list(config) + constants.DEFAULT_REPORTERS:
             try:
                 self.schedule_reporter(reporter_name, dict())
             except BaseException as exception:
@@ -146,8 +143,6 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
 
     def on_start(self):
         """ Called when testing starts """
-        log.debug("Testing started")
-        self.testing_start_time = time.time()
         # Run reporters
         for reporter_module_name in self.context.reporters:
             reporter = self.context.reporters[reporter_module_name]
@@ -161,11 +156,6 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
 
     def on_finish(self):
         """ Called when testing ends """
-        self.testing_finish_time = time.time()
-        log.info(
-            "Testing finished (%d seconds)",
-            int(self.testing_finish_time - self.testing_start_time)
-        )
         # Run reporters
         for reporter_module_name in self.context.reporters:
             reporter = self.context.reporters[reporter_module_name]
@@ -179,8 +169,6 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
 
     def on_scanner_start(self, scanner):
         """ Called when scanner starts """
-        log.debug("Started scanning with %s", scanner)
-        self.scanner_start_time[scanner] = time.time()
         # Run reporters
         for reporter_module_name in self.context.reporters:
             reporter = self.context.reporters[reporter_module_name]
@@ -194,14 +182,6 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
 
     def on_scanner_finish(self, scanner):
         """ Called when scanner ends """
-        self.scanner_finish_time[scanner] = time.time()
-        log.info(
-            "Finished scanning with %s (%d seconds, %d results, %d errors)",
-            scanner,
-            int(self.scanner_finish_time[scanner] - self.scanner_start_time[scanner]),
-            len(self.context.scanners[scanner].get_results()),
-            len(self.context.scanners[scanner].get_errors())
-        )
         # Run reporters
         for reporter_module_name in self.context.reporters:
             reporter = self.context.reporters[reporter_module_name]
