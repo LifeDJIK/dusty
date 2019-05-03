@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # coding=utf-8
-# pylint: disable=I0011,E0401,W0702,W0703
+# pylint: disable=I0011,E0401,W0702,W0703,R0902
 
 #   Copyright 2019 getcarrier.io
 #
@@ -20,18 +20,24 @@
     Scanner: OWASP ZAP
 """
 
+import re
+import json
 import time
+import base64
+import urllib
 import subprocess
+import pkg_resources
 
 from ruamel.yaml.comments import CommentedSeq
 from ruamel.yaml.comments import CommentedMap
 from zapv2 import ZAPv2
 
-from dusty.tools import log
+from dusty.tools import log, status, url
 from dusty.models.module import DependentModuleModel
 from dusty.models.scanner import ScannerModel
 
 from . import constants
+from .parser import parse_results
 
 
 class Scanner(DependentModuleModel, ScannerModel):
@@ -47,22 +53,11 @@ class Scanner(DependentModuleModel, ScannerModel):
         self.meta = dict()
         self._zap_daemon = None
         self._zap_api = None
-
-    def execute(self):
-        """ Run the scanner """
-        log.debug(f"Config: {self.config}")
-        try:
-            self._start_zap()
-            if not self._wait_for_zap_start():
-                log.error("ZAP failed to start")
-                self.errors.append("ZAP daemon failed to start")
-                return
-            log.info("Target: %s", self.config.get("target"))
-        except BaseException as exception:
-            log.exception("Exception during ZAP scanning")
-            self.errors.append(str(exception))
-        finally:
-            self._stop_zap()
+        self._zap_context = None
+        self._zap_context_name = None
+        self._zap_user = None
+        self._scan_policy_name = None
+        self._scan_policies = None
 
     def get_results(self):
         """ Get results """
@@ -81,6 +76,40 @@ class Scanner(DependentModuleModel, ScannerModel):
     def set_meta(self, name, value):
         """ Set meta value """
         self.meta[name] = value
+
+    def execute(self):
+        """ Run the scanner """
+        log.debug(f"{'/'.join(__name__.split('.')[1:-1])}/data/zap-selenium-login.js")
+        try:
+            self._start_zap()
+            if not self._wait_for_zap_start():
+                log.error("ZAP failed to start")
+                self.errors.append("ZAP daemon failed to start")
+                return
+            log.info("Target: %s", self.config.get("target"))
+            self._prepare_context()
+            self._setup_scan_policy()
+            self._spider()
+            self._wait_for_passive_scan()
+            self._ajax_spider()
+            self._wait_for_passive_scan()
+            self._active_scan()
+            self._wait_for_passive_scan()
+        except BaseException as exception:
+            log.exception("Exception during ZAP scanning")
+            self.errors.append(str(exception))
+        finally:
+            try:
+                # Get report
+                log.info("Processing results")
+                zap_report = self._zap_api.core.jsonreport()
+                # Parse JSON
+                parse_results(zap_report, self)
+            except BaseException as exception:
+                log.exception("Exception during ZAP results processing")
+                self.errors.append(str(exception))
+            pkg_resources.cleanup_resources()
+            self._stop_zap()
 
     def _start_zap(self):
         """ Start ZAP daemon, create API client """
@@ -118,180 +147,152 @@ class Scanner(DependentModuleModel, ScannerModel):
             self._zap_daemon.wait()
             self._zap_daemon = None
 
-        # # ZAP wrapper
-        # tool_name = "ZAP"
-        # results = list()
+    def _wait_for_passive_scan(self):
+        status.wait_for_completion(
+            lambda: int(self._zap_api.pscan.records_to_scan) > 0,
+            lambda: int(self._zap_api.pscan.records_to_scan),
+            "Passive scan queue: %d items"
+        )
 
-        # # Format target URL
-        # proto = config.get("protocol")
-        # host = config.get("host")
-        # port = config.get("port")
-        # target = f"{proto}://{host}"
-        # if (proto == "http" and int(port) != 80) or \
-        #         (proto == "https" and int(port) != 443):
-        #     target = f"{target}:{port}"
-        # logging.info("Scanning target %s", target)
-        # # Setup context
-        # logging.info("Preparing context")
-        # zap_context_name = "dusty"
-        # zap_context = zap_api.context.new_context(zap_context_name)
-        # # Setup context inclusions and exclusions
-        # zap_api.context.include_in_context(zap_context_name, f".*{re.escape(host)}.*")
-        # for include_regex in config.get("include", list()):
-        #     zap_api.context.include_in_context(zap_context_name, include_regex)
-        # for exclude_regex in config.get("exclude", list()):
-        #     zap_api.context.exclude_from_context(zap_context_name, exclude_regex)
-        # if config.get("auth_script", None):
-        #     # Load our authentication script
-        #     zap_api.script.load(
-        #         scriptname="zap-selenium-login.js",
-        #         scripttype="authentication",
-        #         scriptengine="Oracle Nashorn",
-        #         filename=pkg_resources.resource_filename(
-        #             "dusty", "templates/zap-selenium-login.js"
-        #         ),
-        #         scriptdescription="Login via selenium script"
-        #     )
-        #     # Enable use of laoded script with supplied selenium-like script
-        #     zap_api.authentication.set_authentication_method(
-        #         zap_context,
-        #         "scriptBasedAuthentication",
-        #         urllib.parse.urlencode({
-        #             "scriptName": "zap-selenium-login.js",
-        #             "Script": base64.b64encode(
-        #                 json.dumps(
-        #                     config.get("auth_script")
-        #                 ).encode("utf-8")
-        #             ).decode("utf-8")
-        #         })
-        #     )
-        #     # Add user to context
-        #     zap_user = zap_api.users.new_user(zap_context, "dusty_user")
-        #     zap_api.users.set_authentication_credentials(
-        #         zap_context,
-        #         zap_user,
-        #         urllib.parse.urlencode({
-        #             "Username": config.get("auth_login", ""),
-        #             "Password": config.get("auth_password", ""),
-        #             "type": "UsernamePasswordAuthenticationCredentials"
-        #         })
-        #     )
-        #     # Enable added user
-        #     zap_api.users.set_user_enabled(zap_context, zap_user, True)
-        #     # Setup auth indicators
-        #     if config.get("logged_in_indicator", None):
-        #         zap_api.authentication.set_logged_in_indicator(
-        #             zap_context, config.get("logged_in_indicator")
-        #         )
-        #     if config.get("logged_out_indicator", None):
-        #         zap_api.authentication.set_logged_out_indicator(
-        #             zap_context, config.get("logged_out_indicator")
-        #         )
-        # # Setup scan policy
-        # scan_policy_name = "Default Policy"
-        # scan_policies = [
-        #     item.strip() for item in config.get("scan_types", "all").split(",")
-        # ]
-        # # Disable globally blacklisted rules
-        # for item in c.ZAP_BLACKLISTED_RULES:
-        #     zap_api.ascan.set_scanner_alert_threshold(
-        #         id=item,
-        #         alertthreshold="OFF",
-        #         scanpolicyname=scan_policy_name
-        #     )
-        #     zap_api.pscan.set_scanner_alert_threshold(
-        #         id=item,
-        #         alertthreshold="OFF"
-        #     )
-        # if "all" not in scan_policies:
-        #     # Disable all scanners first
-        #     for item in zap_api.ascan.scanners(scan_policy_name):
-        #         zap_api.ascan.set_scanner_alert_threshold(
-        #             id=item["id"],
-        #             alertthreshold="OFF",
-        #             scanpolicyname=scan_policy_name
-        #         )
-        #     # Enable scanners from suite
-        #     for policy in scan_policies:
-        #         for item in c.ZAP_SCAN_POCILICES.get(policy, []):
-        #             zap_api.ascan.set_scanner_alert_threshold(
-        #                 id=item,
-        #                 alertthreshold="DEFAULT",
-        #                 scanpolicyname=scan_policy_name)
-        # # Spider
-        # logging.info("Spidering target: %s", target)
-        # if config.get("auth_script", None):
-        #     scan_id = zap_api.spider.scan_as_user(
-        #         zap_context, zap_user, target, recurse=True, subtreeonly=True
-        #     )
-        # else:
-        #     scan_id = zap_api.spider.scan(target)
-        # _wait_for_completion(
-        #     lambda: int(zap_api.spider.status(scan_id)) < 100,
-        #     lambda: int(zap_api.spider.status(scan_id)),
-        #     "Spidering progress: %d%%"
-        # )
-        # # Wait for passive scan
-        # _wait_for_completion(
-        #     lambda: int(zap_api.pscan.records_to_scan) > 0,
-        #     lambda: int(zap_api.pscan.records_to_scan),
-        #     "Passive scan queue: %d items"
-        # )
-        # # Ajax Spider
-        # logging.info("Ajax spidering target: %s", target)
-        # if config.get("auth_script", None):
-        #     scan_id = zap_api.ajaxSpider.scan_as_user(
-        #         zap_context_name, "dusty_user", target, subtreeonly=True
-        #     )
-        # else:
-        #     scan_id = zap_api.ajaxSpider.scan(target)
-        # _wait_for_completion(
-        #     lambda: zap_api.ajaxSpider.status == 'running',
-        #     lambda: int(zap_api.ajaxSpider.number_of_results),
-        #     "Ajax spider found: %d URLs"
-        # )
-        # # Wait for passive scan
-        # _wait_for_completion(
-        #     lambda: int(zap_api.pscan.records_to_scan) > 0,
-        #     lambda: int(zap_api.pscan.records_to_scan),
-        #     "Passive scan queue: %d items"
-        # )
-        # # Active scan
-        # logging.info("Active scan against target %s", target)
-        # if config.get("auth_script", None):
-        #     scan_id = zap_api.ascan.scan_as_user(
-        #         target, zap_context, zap_user, recurse=True,
-        #         scanpolicyname=scan_policy_name
-        #     )
-        # else:
-        #     scan_id = zap_api.ascan.scan(
-        #         target,
-        #         scanpolicyname=scan_policy_name
-        #     )
-        # _wait_for_completion(
-        #     lambda: int(zap_api.ascan.status(scan_id)) < 100,
-        #     lambda: int(zap_api.ascan.status(scan_id)),
-        #     "Active scan progress: %d%%"
-        # )
-        # # Wait for passive scan
-        # _wait_for_completion(
-        #     lambda: int(zap_api.pscan.records_to_scan) > 0,
-        #     lambda: int(zap_api.pscan.records_to_scan),
-        #     "Passive scan queue: %d items"
-        # )
-        # # Get report
-        # logging.info("Scan finished. Processing results")
-        # zap_report = zap_api.core.jsonreport()
-        # if os.environ.get("debug", False):
-        #     with open("/tmp/zap.json", "wb") as report_file:
-        #         report_file.write(zap_report.encode("utf-8"))
-        # # Stop zap
-        # zap_daemon.kill()
-        # zap_daemon.wait()
-        # # Parse JSON
-        # results.extend(ZapJsonParser(zap_report, tool_name).items)
-        # pkg_resources.cleanup_resources()
-        # return tool_name, results
+    def _prepare_context(self):
+        log.info("Preparing context")
+        self._zap_context_name = "dusty"
+        self._zap_context = self._zap_api.context.new_context(self._zap_context_name)
+        # Setup context inclusions and exclusions
+        self._zap_api.context.include_in_context(
+            self._zap_context_name,
+            f".*{re.escape(url.parse_url(self.config.get('target')).hostname)}.*"
+        )
+        for include_regex in self.config.get("include", list()):
+            self._zap_api.context.include_in_context(self._zap_context_name, include_regex)
+        for exclude_regex in self.config.get("exclude", list()):
+            self._zap_api.context.exclude_from_context(self._zap_context_name, exclude_regex)
+        if self.config.get("auth_script", None):
+            # Load our authentication script
+            self._zap_api.script.load(
+                scriptname="zap-selenium-login.js",
+                scripttype="authentication",
+                scriptengine="Oracle Nashorn",
+                filename=pkg_resources.resource_filename(
+                    "dusty",
+                    f"{'/'.join(__name__.split('.')[1:-1])}/data/zap-selenium-login.js"
+                ),
+                scriptdescription="Login via selenium script"
+            )
+            # Enable use of loaded script with supplied selenium-like script
+            self._zap_api.authentication.set_authentication_method(
+                self._zap_context,
+                "scriptBasedAuthentication",
+                urllib.parse.urlencode({
+                    "scriptName": "zap-selenium-login.js",
+                    "Script": base64.b64encode(
+                        json.dumps(
+                            self.config.get("auth_script")
+                        ).encode("utf-8")
+                    ).decode("utf-8")
+                })
+            )
+            # Add user to context
+            self._zap_user = self._zap_api.users.new_user(self._zap_context, "dusty_user")
+            self._zap_api.users.set_authentication_credentials(
+                self._zap_context,
+                self._zap_user,
+                urllib.parse.urlencode({
+                    "Username": self.config.get("auth_login", ""),
+                    "Password": self.config.get("auth_password", ""),
+                    "type": "UsernamePasswordAuthenticationCredentials"
+                })
+            )
+            # Enable added user
+            self._zap_api.users.set_user_enabled(self._zap_context, self._zap_user, True)
+            # Setup auth indicators
+            if self.config.get("logged_in_indicator", None):
+                self._zap_api.authentication.set_logged_in_indicator(
+                    self._zap_context, self.config.get("logged_in_indicator")
+                )
+            if self.config.get("logged_out_indicator", None):
+                self._zap_api.authentication.set_logged_out_indicator(
+                    self._zap_context, self.config.get("logged_out_indicator")
+                )
+
+    def _setup_scan_policy(self):
+        self._scan_policy_name = "Default Policy"
+        self._scan_policies = [
+            item.strip() for item in self.config.get("scan_types", "all").split(",")
+        ]
+        # Disable globally blacklisted rules
+        for item in constants.ZAP_BLACKLISTED_RULES:
+            self._zap_api.ascan.set_scanner_alert_threshold(
+                id=item,
+                alertthreshold="OFF",
+                scanpolicyname=self._scan_policy_name
+            )
+            self._zap_api.pscan.set_scanner_alert_threshold(
+                id=item,
+                alertthreshold="OFF"
+            )
+        if "all" not in self._scan_policies:
+            # Disable all scanners first
+            for item in self._zap_api.ascan.scanners(self._scan_policy_name):
+                self._zap_api.ascan.set_scanner_alert_threshold(
+                    id=item["id"],
+                    alertthreshold="OFF",
+                    scanpolicyname=self._scan_policy_name
+                )
+            # Enable scanners from suite
+            for policy in self._scan_policies:
+                for item in constants.ZAP_SCAN_POCILICES.get(policy, []):
+                    self._zap_api.ascan.set_scanner_alert_threshold(
+                        id=item,
+                        alertthreshold="DEFAULT",
+                        scanpolicyname=self._scan_policy_name)
+
+    def _spider(self):
+        log.info("Spidering target: %s", self.config.get("target"))
+        if self.config.get("auth_script", None):
+            scan_id = self._zap_api.spider.scan_as_user(
+                self._zap_context, self._zap_user, self.config.get("target"),
+                recurse=True, subtreeonly=True
+            )
+        else:
+            scan_id = self._zap_api.spider.scan(self.config.get("target"))
+        status.wait_for_completion(
+            lambda: int(self._zap_api.spider.status(scan_id)) < 100,
+            lambda: int(self._zap_api.spider.status(scan_id)),
+            "Spidering progress: %d%%"
+        )
+
+    def _ajax_spider(self):
+        log.info("Ajax spidering target: %s", self.config.get("target"))
+        if self.config.get("auth_script", None):
+            self._zap_api.ajaxSpider.scan_as_user(
+                self._zap_context_name, "dusty_user", self.config.get("target"), subtreeonly=True
+            )
+        else:
+            self._zap_api.ajaxSpider.scan(self.config.get("target"))
+        status.wait_for_completion(
+            lambda: self._zap_api.ajaxSpider.status == 'running',
+            lambda: int(self._zap_api.ajaxSpider.number_of_results),
+            "Ajax spider found: %d URLs"
+        )
+
+    def _active_scan(self):
+        log.info("Active scan against target %s", self.config.get("target"))
+        if self.config.get("auth_script", None):
+            scan_id = self._zap_api.ascan.scan_as_user(
+                self.config.get("target"), self._zap_context, self._zap_user, recurse=True,
+                scanpolicyname=self._scan_policy_name
+            )
+        else:
+            scan_id = self._zap_api.ascan.scan(
+                self.config.get("target"),
+                scanpolicyname=self._scan_policy_name
+            )
+        status.wait_for_completion(
+            lambda: int(self._zap_api.ascan.status(scan_id)) < 100,
+            lambda: int(self._zap_api.ascan.status(scan_id)),
+            "Active scan progress: %d%%"
+        )
 
     @staticmethod
     def fill_config(data_obj):

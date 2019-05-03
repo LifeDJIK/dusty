@@ -21,3 +21,12 @@
 
 
 ZAP_PATH = "/opt/zap/zap.jar"
+
+ZAP_BLACKLISTED_RULES = [
+    10095  # Backup File Disclosure
+]
+
+ZAP_SCAN_POCILICES = {
+    "xss": [40012, 40014, 40016, 40017],
+    "sqli": [40018, 40019, 40020, 40021, 40022]
+}
