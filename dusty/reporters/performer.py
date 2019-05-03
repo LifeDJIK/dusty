@@ -47,30 +47,17 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
     def prepare(self):
         """ Prepare for action """
         log.debug("Preparing")
-        general_config = dict()
-        if "reporters" in self.context.config["general"]:
-            general_config = self.context.config["general"]["reporters"]
         config = self.context.config["reporters"]
+        # Schedule reporters
         for reporter_name in config:
-            # Merge general config
-            merged_config = general_config.copy()
-            merged_config.update(config[reporter_name])
-            config[reporter_name] = merged_config
             try:
-                # Init reporter instance
-                reporter = importlib.import_module(
-                    f"dusty.reporters.{reporter_name}.reporter"
-                ).Reporter
-                # Validate config
-                reporter.validate_config(config[reporter_name])
-                # Add to context
-                self.context.reporters[reporter.get_name()] = reporter(self.context)
+                self.schedule_reporter(reporter_name, dict())
             except BaseException as exception:
                 log.exception("Failed to prepare reporter %s", reporter_name)
                 if reporter_name not in self.context.errors:
                     self.context.errors[reporter_name] = list()
                 self.context.errors[reporter_name].append(str(exception))
-        # Resolve depencies
+        # Resolve depencies once again
         dependency.resolve_depencies(self.context.reporters)
 
     def perform(self):

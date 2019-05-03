@@ -41,28 +41,12 @@ class ScanningPerformer(ModuleModel, PerformerModel):
     def prepare(self):
         """ Prepare for action """
         log.debug("Preparing")
-        general_config = dict()
-        if "scanners" in self.context.config["general"]:
-            general_config = self.context.config["general"]["scanners"]
         config = self.context.config["scanners"]
+        # Schedule scanners
         for scanner_type in config:
             for scanner_name in config[scanner_type]:
-                if not isinstance(config[scanner_type][scanner_name], dict):
-                    config[scanner_type][scanner_name] = dict()
-                # Merge general config
-                if scanner_type in general_config:
-                    merged_config = general_config[scanner_type].copy()
-                    merged_config.update(config[scanner_type][scanner_name])
-                    config[scanner_type][scanner_name] = merged_config
                 try:
-                    # Init scanner instance
-                    scanner = importlib.import_module(
-                        f"dusty.scanners.{scanner_type}.{scanner_name}.scanner"
-                    ).Scanner
-                    # Validate config
-                    scanner.validate_config(config[scanner_type][scanner_name])
-                    # Add to context
-                    self.context.scanners[scanner.get_name()] = scanner(self.context)
+                    self.schedule_scanner(scanner_type, scanner_name, dict())
                 except BaseException as exception:
                     log.exception(
                         "Failed to prepare %s scanner %s",
@@ -71,7 +55,7 @@ class ScanningPerformer(ModuleModel, PerformerModel):
                     if f"{scanner_type}.{scanner_name}" not in self.context.errors:
                         self.context.errors[f"{scanner_type}.{scanner_name}"] = list()
                     self.context.errors[f"{scanner_type}.{scanner_name}"].append(str(exception))
-        # Resolve depencies
+        # Resolve depencies once again
         dependency.resolve_depencies(self.context.scanners)
 
     def perform(self):

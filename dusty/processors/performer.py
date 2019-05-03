@@ -41,30 +41,17 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
     def prepare(self):
         """ Prepare for action """
         log.debug("Preparing")
-        general_config = dict()
-        if "processing" in self.context.config["general"]:
-            general_config = self.context.config["general"]["processing"]
         config = self.context.config["processing"]
+        # Schedule processors
         for processor_name in config:
-            # Merge general config
-            merged_config = general_config.copy()
-            merged_config.update(config[processor_name])
-            config[processor_name] = merged_config
             try:
-                # Init processor instance
-                processor = importlib.import_module(
-                    f"dusty.processors.{processor_name}.processor"
-                ).Processor
-                # Validate config
-                processor.validate_config(config[processor_name])
-                # Add to context
-                self.context.processors[processor.get_name()] = processor(self.context)
+                self.schedule_processor(processor_name, dict())
             except BaseException as exception:
                 log.exception("Failed to prepare processor %s", processor_name)
                 if processor_name not in self.context.errors:
                     self.context.errors[processor_name] = list()
                 self.context.errors[processor_name].append(str(exception))
-        # Resolve depencies
+        # Resolve depencies once again
         dependency.resolve_depencies(self.context.processors)
 
     def perform(self):
