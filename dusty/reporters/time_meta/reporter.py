@@ -37,10 +37,6 @@ class Reporter(DependentModuleModel, ReporterModel):
             self.context.config["reporters"][__name__.split(".")[-2]]
         self.errors = list()
         self.meta = dict()
-        self.testing_start_time = time.time()
-        self.testing_finish_time = time.time()
-        self.scanner_start_time = dict()
-        self.scanner_finish_time = dict()
 
     def report(self):
         """ Report """
@@ -62,28 +58,31 @@ class Reporter(DependentModuleModel, ReporterModel):
     def on_start(self):
         """ Called when testing starts """
         log.debug("Testing started")
-        self.testing_start_time = time.time()
+        self.set_meta("testing_start_time", time.time())
 
     def on_finish(self):
         """ Called when testing ends """
-        self.testing_finish_time = time.time()
+        self.set_meta("testing_finish_time", time.time())
         log.info(
             "Testing finished (%d seconds)",
-            int(self.testing_finish_time - self.testing_start_time)
+            int(self.get_meta("testing_finish_time") - self.get_meta("testing_start_time"))
         )
 
     def on_scanner_start(self, scanner):
         """ Called when scanner starts """
         log.debug("Started scanning with %s", scanner)
-        self.scanner_start_time[scanner] = time.time()
+        self.context.scanners[scanner].set_meta("scanner_start_time", time.time())
 
     def on_scanner_finish(self, scanner):
         """ Called when scanner ends """
-        self.scanner_finish_time[scanner] = time.time()
+        self.context.scanners[scanner].set_meta("scanner_finish_time", time.time())
         log.info(
             "Finished scanning with %s (%d seconds, %d results, %d errors)",
             scanner,
-            int(self.scanner_finish_time[scanner] - self.scanner_start_time[scanner]),
+            int(
+                self.context.scanners[scanner].get_meta("scanner_finish_time") -
+                self.context.scanners[scanner].get_meta("scanner_start_time")
+            ),
             len(self.context.scanners[scanner].get_results()),
             len(self.context.scanners[scanner].get_errors())
         )
