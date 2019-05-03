@@ -63,11 +63,14 @@ class ScanningPerformer(ModuleModel, PerformerModel):
                     scanner.validate_config(config[scanner_type][scanner_name])
                     # Add to context
                     self.context.scanners[scanner.get_name()] = scanner(self.context)
-                except:
+                except BaseException as exception:
                     log.exception(
                         "Failed to prepare %s scanner %s",
                         scanner_type, scanner_name
                     )
+                    if f"{scanner_type}.{scanner_name}" not in self.context.errors:
+                        self.context.errors[f"{scanner_type}.{scanner_name}"] = list()
+                    self.context.errors[f"{scanner_type}.{scanner_name}"].append(str(exception))
         # Resolve depencies
         dependency.resolve_depencies(self.context.scanners)
 
@@ -161,11 +164,14 @@ class ScanningPerformer(ModuleModel, PerformerModel):
             dependency.resolve_depencies(self.context.scanners)
             # Done
             log.debug("Scheduled scanner %s.%s", scanner_type, scanner_name)
-        except:
+        except BaseException as exception:
             log.exception(
                 "Failed to schedule %s scanner %s",
                 scanner_type, scanner_name
             )
+            if f"{scanner_type}.{scanner_name}" not in self.context.errors:
+                self.context.errors[f"{scanner_type}.{scanner_name}"] = list()
+            self.context.errors[f"{scanner_type}.{scanner_name}"].append(str(exception))
 
     @staticmethod
     def fill_config(data_obj):

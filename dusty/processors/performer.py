@@ -59,8 +59,11 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
                 processor.validate_config(config[processor_name])
                 # Add to context
                 self.context.processors[processor.get_name()] = processor(self.context)
-            except:
+            except BaseException as exception:
                 log.exception("Failed to prepare processor %s", processor_name)
+                if processor_name not in self.context.errors:
+                    self.context.errors[processor_name] = list()
+                self.context.errors[processor_name].append(str(exception))
         # Resolve depencies
         dependency.resolve_depencies(self.context.processors)
 
@@ -138,8 +141,11 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
             dependency.resolve_depencies(self.context.processors)
             # Done
             log.debug("Scheduled processor %s", processor_name)
-        except:
+        except BaseException as exception:
             log.exception("Failed to schedule processor %s", processor_name)
+            if processor_name not in self.context.errors:
+                self.context.errors[processor_name] = list()
+            self.context.errors[processor_name].append(str(exception))
 
     @staticmethod
     def fill_config(data_obj):

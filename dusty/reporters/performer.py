@@ -65,8 +65,11 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
                 reporter.validate_config(config[reporter_name])
                 # Add to context
                 self.context.reporters[reporter.get_name()] = reporter(self.context)
-            except:
+            except BaseException as exception:
                 log.exception("Failed to prepare reporter %s", reporter_name)
+                if reporter_name not in self.context.errors:
+                    self.context.errors[reporter_name] = list()
+                self.context.errors[reporter_name].append(str(exception))
         # Resolve depencies
         dependency.resolve_depencies(self.context.reporters)
 
@@ -125,8 +128,11 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             dependency.resolve_depencies(self.context.reporters)
             # Done
             log.debug("Scheduled reporter %s", reporter_name)
-        except:
+        except BaseException as exception:
             log.exception("Failed to schedule reporter %s", reporter_name)
+            if reporter_name not in self.context.errors:
+                self.context.errors[reporter_name] = list()
+            self.context.errors[reporter_name].append(str(exception))
 
     def report(self):
         """ Report """
