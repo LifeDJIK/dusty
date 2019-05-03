@@ -166,8 +166,11 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             reporter = self.context.reporters[reporter_module_name]
             try:
                 reporter.on_start()
-            except:
+            except BaseException as exception:
                 log.exception("Reporter %s failed", reporter_module_name)
+                if reporter_module_name not in self.context.errors:
+                    self.context.errors[reporter_module_name] = list()
+                self.context.errors[reporter_module_name].append(str(exception))
 
     def on_finish(self):
         """ Called when testing ends """
@@ -181,8 +184,11 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             reporter = self.context.reporters[reporter_module_name]
             try:
                 reporter.on_finish()
-            except:
+            except BaseException as exception:
                 log.exception("Reporter %s failed", reporter_module_name)
+                if reporter_module_name not in self.context.errors:
+                    self.context.errors[reporter_module_name] = list()
+                self.context.errors[reporter_module_name].append(str(exception))
 
     def on_scanner_start(self, scanner):
         """ Called when scanner starts """
@@ -193,8 +199,11 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             reporter = self.context.reporters[reporter_module_name]
             try:
                 reporter.on_scanner_start(scanner)
-            except:
+            except BaseException as exception:
                 log.exception("Reporter %s failed", reporter_module_name)
+                if reporter_module_name not in self.context.errors:
+                    self.context.errors[reporter_module_name] = list()
+                self.context.errors[reporter_module_name].append(str(exception))
 
     def on_scanner_finish(self, scanner):
         """ Called when scanner ends """
@@ -211,8 +220,11 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             reporter = self.context.reporters[reporter_module_name]
             try:
                 reporter.on_scanner_finish(scanner)
-            except:
+            except BaseException as exception:
                 log.exception("Reporter %s failed", reporter_module_name)
+                if reporter_module_name not in self.context.errors:
+                    self.context.errors[reporter_module_name] = list()
+                self.context.errors[reporter_module_name].append(str(exception))
 
     @staticmethod
     def fill_config(data_obj):
