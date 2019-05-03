@@ -40,10 +40,10 @@ for _, name, _ in pkgutil.iter_modules(legacy_scripts_path):
         module=legacy_scripts, name=name
     ))
 
-version = "1.0.0"
+version = "2.0"
 try:
     tag = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"])
-    version = f"{version}+{tag.decode('utf-8').strip()}"
+    version = f"{version}+git.{tag.decode('utf-8').strip()}"
 except:
     pass
 
