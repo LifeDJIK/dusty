@@ -79,7 +79,6 @@ class Scanner(DependentModuleModel, ScannerModel):
 
     def execute(self):
         """ Run the scanner """
-        log.debug(f"{'/'.join(__name__.split('.')[1:-1])}/data/zap-selenium-login.js")
         try:
             self._start_zap()
             if not self._wait_for_zap_start():
