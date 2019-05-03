@@ -116,6 +116,7 @@ function authenticate(helper, paramsValues, credentials) {
         command = item.command;
         target = item.target;
         value = item.value
+        value = value.replace(/%Target%/g, paramsValues.get("Target"));
         value = value.replace(/%Username%/g, credentials.getParam("Username"));
         value = value.replace(/%Password%/g, credentials.getParam("Password"));
         interpreter[command](driver, target, value);
@@ -141,7 +142,7 @@ function authenticate(helper, paramsValues, credentials) {
 
 
 function getRequiredParamsNames(){
-    return ["Script"];
+    return ["Script", "Target"];
 }
 
 

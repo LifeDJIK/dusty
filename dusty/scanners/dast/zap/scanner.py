@@ -184,6 +184,7 @@ class Scanner(DependentModuleModel, ScannerModel):
                 "scriptBasedAuthentication",
                 urllib.parse.urlencode({
                     "scriptName": "zap-selenium-login.js",
+                    "Target": self.config.get("target"),
                     "Script": base64.b64encode(
                         json.dumps(
                             self.config.get("auth_script")
@@ -300,7 +301,7 @@ class Scanner(DependentModuleModel, ScannerModel):
             len(data_obj), "scan_types", "all",
             comment="ZAP scan type, supported any combination of: 'all', 'xss', 'sqli'"
         )
-        data_obj.insert(len(data_obj), "target", "http://app:8080/", comment="scan target")
+        data_obj.insert(len(data_obj), "target", "http://app:8080", comment="scan target")
         data_obj.insert(
             len(data_obj), "include", ["http://app:8080/path.*"],
             comment="(optional) URLs regex to additionally include in scan"
@@ -331,7 +332,7 @@ class Scanner(DependentModuleModel, ScannerModel):
         )
         script_obj = data_obj["auth_script"]
         for command in [
-                {"command": "open", "target": "http://app:8080/", "value": ""},
+                {"command": "open", "target": "%Target%/login", "value": ""},
                 {"command": "waitForElementPresent", "target": "id=login_login", "value": ""},
                 {"command": "waitForElementPresent", "target": "id=login_password", "value": ""},
                 {"command": "waitForElementPresent", "target": "id=login_0", "value": ""},
