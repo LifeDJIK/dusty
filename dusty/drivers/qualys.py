@@ -109,10 +109,13 @@ class WAS(object):
                f'<tr><td rowspan="1" colspan="3">seleniumScriptOK</td></tr>' \
                f'</thead><tbody>'
         for item in auth_script:
+            item_value = item["value"]
+            item_value = item_value.replace("%Username%", auth_login)
+            item_value = item_value.replace("%Password%", auth_password)
             body += f'<tr>' \
                     f'<td>{item["command"]}</td>' \
                     f'<td>{item["target"]}</td>' \
-                    f'<td>{item["value"].replace("%Username%", auth_login).replace("%Password%", auth_password)}</td>' \
+                    f'<td>{item_value}</td>' \
                     f'</tr>'
         body += f'</tbody></table>' \
                f'</body>' \
