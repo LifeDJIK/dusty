@@ -80,6 +80,7 @@ class ConfigHelper:
             return False
         if not config["suites"].get(self.context.suite, None):
             log.error("Suite is not defined: %s", self.context.suite)
+            log.info("Available suites: %s", ", ".join(list(config["suites"])))
             return False
         if "general" not in config["suites"][self.context.suite]:
             config["suites"][self.context.suite]["general"] = dict()
