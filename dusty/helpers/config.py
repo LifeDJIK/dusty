@@ -39,23 +39,28 @@ class ConfigHelper:
 
     def load(self, config_variable, config_file, suite):
         """ Load and parse config """
+        config = self._load_config(config_variable, config_file)
+        if not self._validate_config_base(config):
+            raise ValueError("Invalid config")
+        self.context.config = config["suites"].get(suite)
+        self.context.suite = suite
+        log.info("Loaded %s suite configuration", suite)
+
+    def _load_config(self, config_variable, config_file):
         config_data = os.environ.get(config_variable, None)
         if not config_data:
-            log.info("Loading %s config from %s", suite, config_file)
+            log.info("Loading config from %s", config_file)
             with open(config_file, "rb") as file_:
                 config_data = file_.read()
         else:
-            log.info("Loading %s config from %s", suite, config_variable)
-        self.context.suite = suite
+            log.info("Loading config from %s", config_variable)
         config = self._variable_substitution(
             yaml.load(
                 os.path.expandvars(config_data),
                 Loader=yaml.FullLoader
             )
         )
-        if not self._validate_config_base(config):
-            raise ValueError("Invalid config")
-        self.context.config = config["suites"].get(suite)
+        return config
 
     def _variable_substitution(self, obj):
         """ Allows to use raw environmental variables inside YAML/JSON config """
@@ -85,6 +90,14 @@ class ConfigHelper:
         if "general" not in config["suites"][self.context.suite]:
             config["suites"][self.context.suite]["general"] = dict()
         return True
+
+    def list_suites(self, config_variable, config_file):
+        """ List available suites from config """
+        config = self._load_config(config_variable, config_file)
+        if "suites" not in config:
+            log.error("Suites are not defined")
+            return list()
+        return list(config["suites"])
 
     @staticmethod
     def fill_config(data_obj):

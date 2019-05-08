@@ -48,7 +48,12 @@ class Command(ModuleModel, CommandModel):
         argparser.add_argument(
             "-s", "--suite", dest="suite",
             help="test suite to run",
-            type=str, required=True
+            type=str
+        )
+        argparser.add_argument(
+            "-l", "--list-suites", dest="list_suites",
+            help="list available test suites",
+            action="store_true"
         )
 
     def execute(self, args):
@@ -56,9 +61,14 @@ class Command(ModuleModel, CommandModel):
         log.debug("Starting")
         if args.call_from_legacy:
             log.warning("Called from legacy entry point")
-        # Make instances
+        # Init context
         context = RunContext(args)
         config = ConfigHelper(context)
+        if args.list_suites:
+            suites = config.list_suites(args.config_variable, args.config_file)
+            log.info("Available suites: %s", ", ".join(suites))
+            return
+        # Make instances
         scanning = ScanningPerformer(context)
         processing = ProcessingPerformer(context)
         reporting = ReportingPerformer(context)
