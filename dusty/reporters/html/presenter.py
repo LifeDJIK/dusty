@@ -40,14 +40,25 @@ class HTMLPresenter:
     def project_meta(self):
         """ Returns project meta """
         result = list()
-        _ = HTMLReportMeta
+        result.append(HTMLReportMeta(
+            name="Project name",
+            value=self.context.config["general"]["settings"]["project_name"]
+        ))
+        testing_time = self.context.performers["reporting"].get_module_meta("time_meta", "", "N/A")
+        result.append(HTMLReportMeta(
+            name="Testing time",
+            value=f"{testing_time} seconds"
+        ))
         return result
 
     @property
     def project_alerts(self):
         """ Returns project alerts """
         result = list()
-        _ = HTMLReportAlert
+        result.append(HTMLReportAlert(
+            type_="warning",
+            text="This report is from proof-of-concept version of Dusty 2.0"
+        ))
         return result
 
     @property
