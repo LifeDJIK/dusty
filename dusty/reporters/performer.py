@@ -193,6 +193,19 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
                     self.context.errors[reporter_module_name] = list()
                 self.context.errors[reporter_module_name].append(str(exception))
 
+    def flush(self):
+        """ Flush results """
+        # Run reporters
+        for reporter_module_name in self.context.reporters:
+            reporter = self.context.reporters[reporter_module_name]
+            try:
+                reporter.flush()
+            except BaseException as exception:
+                log.exception("Reporter %s failed", reporter_module_name)
+                if reporter_module_name not in self.context.errors:
+                    self.context.errors[reporter_module_name] = list()
+                self.context.errors[reporter_module_name].append(str(exception))
+
     @staticmethod
     def fill_config(data_obj):
         """ Make sample config """

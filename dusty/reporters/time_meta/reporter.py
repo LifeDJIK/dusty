@@ -41,6 +41,9 @@ class Reporter(DependentModuleModel, ReporterModel):
     def report(self):
         """ Report """
 
+    def flush(self):
+        """ Flush results """
+
     def get_errors(self):
         """ Get errors """
         return self.errors

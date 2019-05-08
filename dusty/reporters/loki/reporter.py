@@ -68,6 +68,9 @@ class Reporter(DependentModuleModel, ReporterModel):
 
     def report(self):
         """ Report """
+
+    def flush(self):
+        """ Flush results """
         for handler in logging.getLogger("").handlers:
             handler.flush()
 

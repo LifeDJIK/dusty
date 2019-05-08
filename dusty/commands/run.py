@@ -80,6 +80,7 @@ class Command(ModuleModel, CommandModel):
         processing.perform()
         reporting.perform()
         # Done
+        reporting.flush()
         log.debug("Done")
 
     @staticmethod

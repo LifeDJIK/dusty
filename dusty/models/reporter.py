@@ -45,6 +45,10 @@ class ReporterModel(MetaModel):
         """ Report """
         raise NotImplementedError()
 
+    def flush(self):
+        """ Flush results """
+        raise NotImplementedError()
+
     def get_errors(self):
         """ Get errors """
         raise NotImplementedError()

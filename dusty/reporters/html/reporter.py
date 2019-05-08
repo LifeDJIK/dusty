@@ -57,6 +57,9 @@ class Reporter(DependentModuleModel, ReporterModel):
         with open(file, "w") as report:
             report.write(data)
 
+    def flush(self):
+        """ Flush results """
+
     def get_errors(self):
         """ Get errors """
         return self.errors

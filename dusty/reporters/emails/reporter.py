@@ -40,6 +40,9 @@ class Reporter(DependentModuleModel, ReporterModel):
         log.debug(f"Config: {self.config}")
         log.info("Reporting")
 
+    def flush(self):
+        """ Flush results """
+
     def get_errors(self):
         """ Get errors """
         return self.errors
