@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # coding=utf-8
+# pylint: disable=I0011,E0401
 
 #   Copyright 2019 getcarrier.io
 #
@@ -19,9 +20,14 @@
     Reporter: html
 """
 
+from jinja2 import Environment, PackageLoader, select_autoescape
+
 from dusty.tools import log
 from dusty.models.module import DependentModuleModel
 from dusty.models.reporter import ReporterModel
+
+from . import constants
+from .presenter import HTMLPresenter
 
 
 class Reporter(DependentModuleModel, ReporterModel):
@@ -37,8 +43,19 @@ class Reporter(DependentModuleModel, ReporterModel):
 
     def report(self):
         """ Report """
-        log.debug(f"Config: {self.config}")
-        log.info("Reporting")
+        file = self.config.get("file", constants.DEFAULT_REPORT_FILE)
+        log.info("Creating HTML report %s", file)
+        environment = Environment(
+            loader=PackageLoader(
+                "dusty",
+                f"{'/'.join(__name__.split('.')[1:-1])}/data"
+            ),
+            autoescape=select_autoescape(["html", "xml"])
+        )
+        template = environment.get_template("report.html")
+        data = template.render(presenter=HTMLPresenter(self.context))
+        with open(file, "w") as report:
+            report.write(data)
 
     def get_errors(self):
         """ Get errors """
