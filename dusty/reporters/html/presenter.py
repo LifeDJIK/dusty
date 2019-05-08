@@ -20,6 +20,10 @@
     HTML report presenter
 """
 
+from dusty.models.finding import DastFinding
+
+from .models import HTMLReportMeta, HTMLReportAlert, HTMLReportFinding, HTMLReportError
+
 
 class HTMLPresenter:
     """ HTML presenter """
@@ -35,24 +39,45 @@ class HTMLPresenter:
     @property
     def project_meta(self):
         """ Returns project meta """
-        return list()
+        result = list()
+        _ = HTMLReportMeta
+        return result
 
     @property
     def project_alerts(self):
         """ Returns project alerts """
-        return list()
+        result = list()
+        _ = HTMLReportAlert
+        return result
 
     @property
     def project_findings(self):
         """ Returns project findings """
-        return list()
+        result = list()
+        for item in self.context.results:
+            if isinstance(item, DastFinding):
+                result.append(HTMLReportFinding(
+                    tool=item.get_meta("tool", ""),
+                    title=item.title,
+                    severity=item.get_meta("severity", "Info"),
+                    description=item.description
+                ))
+        return result
 
     @property
     def project_information_findings(self):
         """ Returns project information findings """
-        return list()
+        result = list()
+        return result
 
     @property
     def project_errors(self):
         """ Returns project errors """
-        return list()
+        result = list()
+        for name in self.context.errors:
+            result.append(HTMLReportError(
+                tool=name,
+                title=self.context.errors[name],
+                description=self.context.errors[name]
+            ))
+        return result
