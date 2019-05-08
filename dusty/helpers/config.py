@@ -39,11 +39,11 @@ class ConfigHelper:
 
     def load(self, config_variable, config_file, suite):
         """ Load and parse config """
+        self.context.suite = suite
         config = self._load_config(config_variable, config_file)
         if not self._validate_config_base(config):
             raise ValueError("Invalid config")
         self.context.config = config["suites"].get(suite)
-        self.context.suite = suite
         log.info("Loaded %s suite configuration", suite)
 
     def _load_config(self, config_variable, config_file):
