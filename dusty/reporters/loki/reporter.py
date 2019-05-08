@@ -40,6 +40,7 @@ class Reporter(DependentModuleModel, ReporterModel):
             self.context.config["reporters"][__name__.split(".")[-2]]
         self.errors = list()
         self.meta = dict()
+        self._enable_loki_logging()
 
     def _enable_loki_logging(self):
         loki_username = self.config.get("username", None)
