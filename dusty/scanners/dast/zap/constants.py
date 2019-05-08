@@ -30,3 +30,18 @@ ZAP_SCAN_POCILICES = {
     "xss": [40012, 40014, 40016, 40017],
     "sqli": [40018, 40019, 40020, 40021, 40022]
 }
+
+ZAP_SEVERITIES = {
+    "0": "Info",
+    "1": "Low",
+    "2": "Medium",
+    "3": "High"
+}
+
+ZAP_CONFIDENCES = {
+    "0": "False Positive",
+    "1": "Low",
+    "2": "Medium",
+    "3": "High",
+    "4": "User Confirmed"
+}

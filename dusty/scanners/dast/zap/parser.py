@@ -20,10 +20,36 @@
     OWASP ZAP JSON parser
 """
 
+import json
+
 from dusty.tools import log
+from dusty.models.finding import DastFinding
+
+from . import constants
 
 
 def parse_results(data, scanner):
     """ Parse results """
-    _ = scanner
-    log.debug(data)
+    log.debug("Parsing results")
+    zap_json = json.loads(data)
+    for site in zap_json["site"]:
+        for alert in site["alerts"]:
+            description = list()
+            if "desc" in alert:
+                description.append(alert["desc"])
+            if "solution" in alert:
+                description.append(f'Solution:\n {alert["solution"]}')
+            if "reference" in alert:
+                description.append(f'Reference:\n {alert["reference"]}')
+            if "otherinfo" in alert:
+                description.append(f'Other information:\n {alert["otherinfo"]}')
+            description = "\n".join(description)
+            # Make finding object
+            finding = DastFinding(
+                title=alert["name"],
+                description=description
+            )
+            finding.set_meta("tool", "ZAP")
+            finding.set_meta("severity", constants.ZAP_SEVERITIES[alert["riskcode"]])
+            finding.set_meta("confidence", constants.ZAP_CONFIDENCES[alert["confidence"]])
+            scanner.results.append(finding)
