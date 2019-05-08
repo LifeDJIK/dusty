@@ -75,9 +75,11 @@ class HTMLPresenter:
         """ Returns project errors """
         result = list()
         for name in self.context.errors:
-            result.append(HTMLReportError(
-                tool=name,
-                title=self.context.errors[name],
-                description=self.context.errors[name]
-            ))
+            items = self.context.errors[name]
+            for item in items:
+                result.append(HTMLReportError(
+                    tool=name,
+                    title=item,
+                    description=item
+                ))
         return result
