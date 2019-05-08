@@ -66,7 +66,7 @@ class ConfigHelper:
         if isinstance(obj, list):
             for index, item in enumerate(obj):
                 obj[index] = self._variable_substitution(item)
-        if isinstance(obj, str) and re.match(r"^\@[a-zA-Z_][a-zA-Z0-9_]*$", obj) \
+        if isinstance(obj, str) and re.match(r"^\$\![a-zA-Z_][a-zA-Z0-9_]*$", obj) \
                 and obj[1:] in os.environ:
             return os.environ[obj[1:]]
         return obj

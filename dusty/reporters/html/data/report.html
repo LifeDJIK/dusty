@@ -199,6 +199,43 @@
             </div>
             {% endif %}
 
+            {% if presenter.project_false_positive_findings %}
+            <div class="row">
+                <div class="col">
+                    <h1>False positives</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <table class="table table-striped">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Tool name</th>
+                                <th>Description</th>
+                                <th>Severity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in presenter.project_false_positive_findings %}
+                            <tr class="header">
+                                <td>{{ item.tool }}</td>
+                                <td>{{ item.title }} <span>+</span></td>
+                                <td>{{ item.severity }}</td>
+                            </tr>
+                            <tr class="description">
+                                <td colspan="3">
+                                    <div>
+                                        {{ item.description|safe }}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
             {% if presenter.project_errors %}
             <div class="row">
                 <div class="col">

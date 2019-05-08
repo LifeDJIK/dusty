@@ -44,7 +44,9 @@ class HTMLPresenter:
             name="Project name",
             value=self.context.config["general"]["settings"]["project_name"]
         ))
-        testing_time = self.context.performers["reporting"].get_module_meta("time_meta", "", "N/A")
+        testing_time = self.context.performers["reporting"].get_module_meta(
+            "time_meta", "testing_run_time", "N/A"
+        )
         result.append(HTMLReportMeta(
             name="Testing time",
             value=f"{testing_time} seconds"
@@ -78,6 +80,12 @@ class HTMLPresenter:
     @property
     def project_information_findings(self):
         """ Returns project information findings """
+        result = list()
+        return result
+
+    @property
+    def project_false_positive_findings(self):
+        """ Returns project false positive findings """
         result = list()
         return result
 
