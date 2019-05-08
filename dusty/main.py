@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # coding=utf-8
+# pylint: disable=I0011,W0702
 
 #   Copyright 2019 getcarrier.io
 #
@@ -72,6 +73,9 @@ def main():
     log.info(f"Dusty {pkg_resources.require('dusty')[0].version} is starting")
     log.debug("Loaded commands: {}".format(", ".join(list(commands.keys()))))
     # Run selected command
-    commands[args.command].execute(args)
+    try:
+        commands[args.command].execute(args)
+    except:
+        log.exception("Command failed")
     # Display bye-bye message
     log.info("All done. Have a nice day")
