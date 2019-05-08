@@ -26,3 +26,33 @@ class HTMLPresenter:
 
     def __init__(self, context):
         self.context = context
+
+    @property
+    def project_name(self):
+        """ Returns project name """
+        return self.context.config["general"]["settings"]["project_name"]
+
+    @property
+    def project_meta(self):
+        """ Returns project meta """
+        return list()
+
+    @property
+    def project_alerts(self):
+        """ Returns project alerts """
+        return list()
+
+    @property
+    def project_findings(self):
+        """ Returns project findings """
+        return list()
+
+    @property
+    def project_information_findings(self):
+        """ Returns project information findings """
+        return list()
+
+    @property
+    def project_errors(self):
+        """ Returns project errors """
+        return list()

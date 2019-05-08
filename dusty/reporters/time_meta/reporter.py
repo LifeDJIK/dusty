@@ -63,10 +63,11 @@ class Reporter(DependentModuleModel, ReporterModel):
     def on_finish(self):
         """ Called when testing ends """
         self.set_meta("testing_finish_time", time.time())
-        log.info(
-            "Testing finished (%d seconds)",
+        self.set_meta(
+            "testing_run_time",
             int(self.get_meta("testing_finish_time") - self.get_meta("testing_start_time"))
         )
+        log.info("Testing finished (%d seconds)", self.get_meta("testing_run_time"))
 
     def on_scanner_start(self, scanner):
         """ Called when scanner starts """
@@ -76,13 +77,17 @@ class Reporter(DependentModuleModel, ReporterModel):
     def on_scanner_finish(self, scanner):
         """ Called when scanner ends """
         self.context.scanners[scanner].set_meta("scanner_finish_time", time.time())
-        log.info(
-            "Finished scanning with %s (%d seconds, %d results, %d errors)",
-            scanner,
+        self.context.scanners[scanner].set_meta(
+            "scanner_run_time",
             int(
                 self.context.scanners[scanner].get_meta("scanner_finish_time") -
                 self.context.scanners[scanner].get_meta("scanner_start_time")
-            ),
+            )
+        )
+        log.info(
+            "Finished scanning with %s (%d seconds, %d results, %d errors)",
+            scanner,
+            self.context.scanners[scanner].get_meta("scanner_run_time"),
             len(self.context.scanners[scanner].get_results()),
             len(self.context.scanners[scanner].get_errors())
         )

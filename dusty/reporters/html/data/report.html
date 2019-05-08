@@ -3,7 +3,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Carrier | Continuous Test Execution Platform</title>
+        <title>{{ presenter.project_name }} | Carrier | Continuous Test Execution Platform</title>
         <link href="https://fonts.googleapis.com/css?family=Cairo:400,700" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
         <style type="text/css">
@@ -92,11 +92,11 @@
             }
             .alert-warning {
               background-color: rgba(255, 238, 186, 0.9);
-              border: solid 2px #ff8B47;
+              border: solid 2px #ff8b47;
             }
             .alert-danger {
               background-color: rgba(230, 98, 199, 0.2);
-              border: solid 2px #E662C7;
+              border: solid 2px #e662c7;
             }
             tr.description {
               border: solid 1px #f2f2f2;
@@ -106,31 +106,26 @@
     </head>
     <body>
         <div class="container">
-            <h1>Security tests has been COMPLETED for the SOME-PROJECT project</h1>
+            <h1>Security tests has been COMPLETED for the {{ presenter.project_name }} project</h1>
 
             <div class="row">
                 <div class="col">
                     <table class="table table-sm table-striped">
-                        <tr><td>Project name</td> <td> SOME-PROJECT </td></tr>
-                        <tr><td>Security test type</td> <td>DAST</td></tr>
-                        <tr><td>Environment type</td> <td>staging</td></tr>
-                        <tr><td>Target</td> <td>https://target.example.com/</td></tr>
-                        <tr><td>Test execution time</td> <td>123 seconds</td></tr>
+                        {% for item in presenter.project_meta %}
+                        <tr><td>{{ item.name }}</td><td>{{ item.value }}</td></tr>
+                        {% endfor %}
                     </table>
                 </div>
                 <div class="col">
-                  <div class="alert alert-success" role="alert">
-                    Security tests PASSED
+                  {% for item in presenter.project_alerts %}
+                  <div class="alert alert-{{ item.type }}" role="alert">
+                    {{ item.text }}
                   </div>
-                  <div class="alert alert-warning" role="alert">
-                    Security tests PASSED, but some ERRORS occured
-                  </div>
-                  <div class="alert alert-danger" role="alert">
-                    Security tests FAILED
-                  </div>
+                  {% endfor %}
                 </div>
             </div>
 
+            {% if presenter.project_findings %}
             <div class="row">
                 <div class="col">
                     <h1>Findings</h1>
@@ -147,33 +142,27 @@
                             </tr>
                         </thead>
                         <tbody>
+                          {% for item in presenter.project_findings %}
                           <tr class="header">
-                              <td>QualysWAS</td>
-                              <td>Cookie Does Not Contain The secure Attribute - Confirmed Vulnerability <span>+</span></td>
-                              <td>Low</td>
+                              <td>{{ item.tool }}</td>
+                              <td>{{ item.title }} <span>+</span></td>
+                              <td>{{ item.severity }}</td>
                           </tr>
                           <tr class="description">
                               <td colspan="3">
                                   <div>
-                                      <h3>Title: Cookie Does Not Contain The secure Attribute - Confirmed Vulnerability</h3>
-                                      <h3>Description:</h3>
-                                      <p>The cookie does not contain the "secure" attribute.</p>
-                                      <p><strong>OWASP</strong>:A3</p>
-                                      <p><strong>WASC</strong>:WASC-4</p>
-                                      <p><strong>CVSS_BASE</strong>:6.4</p>
-                                      <p><strong>Tool</strong>: QualysWAS</p>
-                                      <p><strong>Severity</strong>: Low</p>
-                                      <p><strong>Issue Hash</strong>: be62d4e1a077a3a3532457d8501dc7bbd6c78323c551d0a2e6d1579e54fa51e5</p>
-                                      <p><strong>impact</strong>: Cookies with the "secure" attribute are only permitted to be sent via HTTPS. Cookies sent via HTTP expose an unsuspecting user to sniffing attacks that could lead to user impersonation or compromise of the application account.
-                                      <strong>mitigation</strong>: If the associated risk of a compromised account is high, apply the "secure" attribute to cookies and force all sensitive requests to be sent via HTTPS.
+                                    {{ item.description }}
                                   </div>
                               </td>
                           </tr>
+                          {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
+            {% endif %}
 
+            {% if presenter.project_information_findings %}
             <div class="row">
                 <div class="col">
                     <h1>Information and findings below minimal severity level</h1>
@@ -190,31 +179,27 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% for item in presenter.project_information_findings %}
                             <tr class="header">
-                                <td>QualysWAS</td>
-                                <td>DNS Host Name - Information Gathered <span>+</span></td>
-                                <td>Info</td>
+                                <td>{{ item.tool }}</td>
+                                <td>{{ item.title }} <span>+</span></td>
+                                <td>{{ item.severity }}</td>
                             </tr>
                             <tr class="description">
                                 <td colspan="3">
                                     <div>
-                                        <h3>Title: DNS Host Name - Information Gathered</h3>
-                                        <h3>Description:</h3>
-                                        <p>The fully qualified domain name of this host, if it was obtained from a DNS server, is displayed in the RESULT section.</p>
-                                        <p><strong>OWASP</strong>:</p>
-                                        <p><strong>WASC</strong>:</p>
-                                        <p><strong>CVSS_BASE</strong>:</p>
-                                        <p><strong>Tool</strong>: QualysWAS</p>
-                                        <p><strong>Severity</strong>: Info</p>
-                                        <p><strong>Issue Hash</strong>: 84c31ada97f174961e339c53fe5b5861fc2518417531d3a47a9d44354909f4a6</p>
+                                        {{ item.description }}
                                     </div>
                                 </td>
                             </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
+            {% endif %}
 
+            {% if presenter.project_errors %}
             <div class="row">
                 <div class="col">
                     <h1>Errors</h1>
@@ -230,22 +215,24 @@
                             </tr>
                         </thead>
                         <tbody>
+                          {% for item in presenter.project_errors %}
                           <tr class="header">
-                              <td>Influx</td>
-                              <td>Host connection failed <span>+</span></td>
+                              <td>{{ item.tool }}</td>
+                              <td>{{ item.title }} <span>+</span></td>
                           </tr>
                           <tr class="description">
                               <td colspan="3">
                                   <div>
-                                    Stack trace <br>
-                                    ...goes here...
+                                    {{ item.description }}
                                   </div>
                               </td>
                           </tr>
+                          {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
+            {% endif %}
 
             <div class="row">
                 <div class="col footer"> (c) 2019 Carrier | Continuous Test Execution Platform </div>
@@ -254,14 +241,13 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
         <script>
-            $( document ).ready(function() {
-                var list = document.getElementsByClassName("description")
-                for (let item of list) { item.style.display="none" }
+            $(document).ready(function() {
+                var list = document.getElementsByClassName("description");
+                for (let item of list) { item.style.display = "none"; }
             });
-            $('.header').click(function(){
-               $(this).find('span').text(function(_, value){return value=='-'?'+':'-'});
-                $(this).nextUntil('tr.header').slideToggle(100, function(){
-                });
+            $(".header").click(function() {
+                $(this).find("span").text(function(_, value){return value=='-'?'+':'-'});
+                $(this).nextUntil("tr.header").slideToggle(100, function(){});
             });
         </script>
     </body>
