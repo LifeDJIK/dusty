@@ -26,10 +26,14 @@ from dusty.models.meta import MetaModel
 class ProcessorModel(MetaModel):
     """ Processor base class """
 
-    def execute(self):
-        """ Run the processor """
-        raise NotImplementedError()
+    def __init__(self):
+        super().__init__()
+        self.errors = list()
 
     def get_errors(self):
         """ Get errors """
+        return self.errors
+
+    def execute(self):
+        """ Run the processor """
         raise NotImplementedError()

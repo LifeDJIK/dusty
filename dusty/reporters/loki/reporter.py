@@ -35,11 +35,10 @@ class Reporter(DependentModuleModel, ReporterModel):
 
     def __init__(self, context):
         """ Initialize reporter instance """
+        super().__init__()
         self.context = context
         self.config = \
             self.context.config["reporters"][__name__.split(".")[-2]]
-        self.errors = list()
-        self.meta = dict()
         self._enable_loki_logging()
 
     def _enable_loki_logging(self):
@@ -66,39 +65,10 @@ class Reporter(DependentModuleModel, ReporterModel):
         logging.getLogger("").addHandler(handler)
         log.info("Enabled Loki logging in %s mode", mode)
 
-    def report(self):
-        """ Report """
-
     def flush(self):
         """ Flush results """
         for handler in logging.getLogger("").handlers:
             handler.flush()
-
-    def get_errors(self):
-        """ Get errors """
-        return self.errors
-
-    def get_meta(self, name, default=None):
-        """ Get meta value """
-        if name in self.meta:
-            return self.meta[name]
-        return default
-
-    def set_meta(self, name, value):
-        """ Set meta value """
-        self.meta[name] = value
-
-    def on_start(self):
-        """ Called when testing starts """
-
-    def on_finish(self):
-        """ Called when testing ends """
-
-    def on_scanner_start(self, scanner):
-        """ Called when scanner starts """
-
-    def on_scanner_finish(self, scanner):
-        """ Called when scanner ends """
 
     @staticmethod
     def fill_config(data_obj):
@@ -126,11 +96,6 @@ class Reporter(DependentModuleModel, ReporterModel):
         if "url" not in config:
             log.error("No Loki URL defined in config")
             raise ValueError("No Loki URL defined in config")
-
-    @staticmethod
-    def depends_on():
-        """ Return required depencies """
-        return []
 
     @staticmethod
     def run_after():

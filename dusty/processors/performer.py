@@ -36,6 +36,7 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
 
     def __init__(self, context):
         """ Initialize instance """
+        super().__init__()
         self.context = context
 
     def prepare(self):

@@ -24,10 +24,16 @@
 class MetaModel:
     """ Meta base class """
 
+    def __init__(self):
+        super().__init__()
+        self.meta = dict()
+
     def get_meta(self, name, default=None):
         """ Get meta value """
-        raise NotImplementedError()
+        if name in self.meta:
+            return self.meta[name]
+        return default
 
     def set_meta(self, name, value):
         """ Set meta value """
-        raise NotImplementedError()
+        self.meta[name] = value

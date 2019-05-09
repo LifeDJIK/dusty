@@ -45,12 +45,10 @@ class Scanner(DependentModuleModel, ScannerModel):
 
     def __init__(self, context):
         """ Initialize scanner instance """
+        super().__init__()
         self.context = context
         self.config = \
             self.context.config["scanners"][__name__.split(".")[-3]][__name__.split(".")[-2]]
-        self.results = list()
-        self.errors = list()
-        self.meta = dict()
         self._zap_daemon = None
         self._zap_api = None
         self._zap_context = None
@@ -58,24 +56,6 @@ class Scanner(DependentModuleModel, ScannerModel):
         self._zap_user = None
         self._scan_policy_name = None
         self._scan_policies = None
-
-    def get_results(self):
-        """ Get results """
-        return self.results
-
-    def get_errors(self):
-        """ Get errors """
-        return self.errors
-
-    def get_meta(self, name, default=None):
-        """ Get meta value """
-        if name in self.meta:
-            return self.meta[name]
-        return default
-
-    def set_meta(self, name, value):
-        """ Set meta value """
-        self.meta[name] = value
 
     def execute(self):
         """ Run the scanner """
@@ -353,16 +333,6 @@ class Scanner(DependentModuleModel, ScannerModel):
         if "target" not in config:
             log.error("No target defined in config")
             raise ValueError("No target configuration present")
-
-    @staticmethod
-    def depends_on():
-        """ Return required depencies """
-        return []
-
-    @staticmethod
-    def run_after():
-        """ Return optional depencies """
-        return []
 
     @staticmethod
     def get_name():

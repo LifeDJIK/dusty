@@ -36,23 +36,21 @@ class ModuleModel:
     @staticmethod
     def fill_config(data_obj):
         """ Make sample config """
-        raise NotImplementedError()
 
     @staticmethod
     def validate_config(config):
         """ Validate config """
-        raise NotImplementedError()
 
 
-class DependentModuleModel(ModuleModel):
+class DependentModuleModel(ModuleModel):  # pylint: disable=I0011,W0223
     """ Dependent module base class """
 
     @staticmethod
     def depends_on():
         """ Return required depencies """
-        raise NotImplementedError()
+        return list()
 
     @staticmethod
     def run_after():
         """ Return optional depencies """
-        raise NotImplementedError()
+        return list()

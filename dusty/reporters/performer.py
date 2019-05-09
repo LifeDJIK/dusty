@@ -39,6 +39,7 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
 
     def __init__(self, context):
         """ Initialize instance """
+        super().__init__()
         self.context = context
 
     def prepare(self):
@@ -245,11 +246,3 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
     def get_description():
         """ Module description or help message """
         raise "performs result reporting"
-
-    def get_errors(self):
-        """ Get errors """
-        raise NotImplementedError()
-
-    def get_meta(self, name, default=None):
-        """ Get meta value """
-        raise NotImplementedError()

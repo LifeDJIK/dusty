@@ -27,33 +27,10 @@ class DastFinding(MetaModel):
     """ DAST Finding """
 
     def __init__(self, title, description):
-        self.meta = dict()
+        super().__init__()
         self.title = title
         self.description = description
-
-    def get_meta(self, name, default=None):
-        """ Get meta value """
-        if name in self.meta:
-            return self.meta[name]
-        return default
-
-    def set_meta(self, name, value):
-        """ Set meta value """
-        self.meta[name] = value
 
 
 class SastFinding(MetaModel):
     """ SAST Finding """
-
-    def __init__(self):
-        self.meta = dict()
-
-    def get_meta(self, name, default=None):
-        """ Get meta value """
-        if name in self.meta:
-            return self.meta[name]
-        return default
-
-    def set_meta(self, name, value):
-        """ Set meta value """
-        self.meta[name] = value

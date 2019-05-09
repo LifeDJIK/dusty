@@ -32,31 +32,10 @@ class Reporter(DependentModuleModel, ReporterModel):
 
     def __init__(self, context):
         """ Initialize reporter instance """
+        super().__init__()
         self.context = context
         self.config = \
             self.context.config["reporters"][__name__.split(".")[-2]]
-        self.errors = list()
-        self.meta = dict()
-
-    def report(self):
-        """ Report """
-
-    def flush(self):
-        """ Flush results """
-
-    def get_errors(self):
-        """ Get errors """
-        return self.errors
-
-    def get_meta(self, name, default=None):
-        """ Get meta value """
-        if name in self.meta:
-            return self.meta[name]
-        return default
-
-    def set_meta(self, name, value):
-        """ Set meta value """
-        self.meta[name] = value
 
     def on_start(self):
         """ Called when testing starts """
@@ -94,24 +73,6 @@ class Reporter(DependentModuleModel, ReporterModel):
             len(self.context.scanners[scanner].get_results()),
             len(self.context.scanners[scanner].get_errors())
         )
-
-    @staticmethod
-    def fill_config(data_obj):
-        """ Make sample config """
-
-    @staticmethod
-    def validate_config(config):
-        """ Validate config """
-
-    @staticmethod
-    def depends_on():
-        """ Return required depencies """
-        return []
-
-    @staticmethod
-    def run_after():
-        """ Return optional depencies """
-        return []
 
     @staticmethod
     def get_name():

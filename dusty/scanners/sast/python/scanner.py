@@ -30,12 +30,10 @@ class Scanner(DependentModuleModel, ScannerModel):
 
     def __init__(self, context):
         """ Initialize scanner instance """
+        super().__init__()
         self.context = context
         self.config = \
             self.context.config["scanners"][__name__.split(".")[-3]][__name__.split(".")[-2]]
-        self.results = list()
-        self.errors = list()
-        self.meta = dict()
 
     def execute(self):
         """ Run the scanner """
@@ -43,24 +41,6 @@ class Scanner(DependentModuleModel, ScannerModel):
         for scanner in ["bandit"]:
             log.info("Adding %s scanner", scanner)
             self.context.performers["scanning"].schedule_scanner("sast", scanner, self.config)
-
-    def get_results(self):
-        """ Get results """
-        return self.results
-
-    def get_errors(self):
-        """ Get errors """
-        return self.errors
-
-    def get_meta(self, name, default=None):
-        """ Get meta value """
-        if name in self.meta:
-            return self.meta[name]
-        return default
-
-    def set_meta(self, name, value):
-        """ Set meta value """
-        self.meta[name] = value
 
     @staticmethod
     def fill_config(data_obj):
@@ -71,16 +51,6 @@ class Scanner(DependentModuleModel, ScannerModel):
     def validate_config(config):
         """ Validate config """
         log.debug(f"Config: {config}")
-
-    @staticmethod
-    def depends_on():
-        """ Return required depencies """
-        return []
-
-    @staticmethod
-    def run_after():
-        """ Return optional depencies """
-        return []
 
     @staticmethod
     def get_name():

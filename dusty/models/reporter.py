@@ -25,30 +25,28 @@ from dusty.models.meta import MetaModel
 class ReporterModel(MetaModel):
     """ Reporter base class """
 
-    def on_start(self):
-        """ Called when testing starts """
-        raise NotImplementedError()
-
-    def on_finish(self):
-        """ Called when testing ends """
-        raise NotImplementedError()
-
-    def on_scanner_start(self, scanner):
-        """ Called when scanner starts """
-        raise NotImplementedError()
-
-    def on_scanner_finish(self, scanner):
-        """ Called when scanner ends """
-        raise NotImplementedError()
-
-    def report(self):
-        """ Report """
-        raise NotImplementedError()
-
-    def flush(self):
-        """ Flush results """
-        raise NotImplementedError()
+    def __init__(self):
+        super().__init__()
+        self.errors = list()
 
     def get_errors(self):
         """ Get errors """
-        raise NotImplementedError()
+        return self.errors
+
+    def on_start(self):
+        """ Called when testing starts """
+
+    def on_finish(self):
+        """ Called when testing ends """
+
+    def on_scanner_start(self, scanner):
+        """ Called when scanner starts """
+
+    def on_scanner_finish(self, scanner):
+        """ Called when scanner ends """
+
+    def report(self):
+        """ Report """
+
+    def flush(self):
+        """ Flush results """

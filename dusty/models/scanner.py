@@ -26,14 +26,19 @@ from dusty.models.meta import MetaModel
 class ScannerModel(MetaModel):
     """ Scanner base class """
 
-    def execute(self):
-        """ Run the scanner """
-        raise NotImplementedError()
+    def __init__(self):
+        super().__init__()
+        self.results = list()
+        self.errors = list()
 
     def get_results(self):
         """ Get results """
-        raise NotImplementedError()
+        return self.results
 
     def get_errors(self):
         """ Get errors """
+        return self.errors
+
+    def execute(self):
+        """ Run the scanner """
         raise NotImplementedError()
