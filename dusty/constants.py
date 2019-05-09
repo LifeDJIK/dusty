@@ -28,3 +28,5 @@ DEFAULT_CONFIG_ENV_KEY = "CARRIER_SCAN_CONFIG"
 
 CONFIG_VERSION_KEY = "config_version"
 CURRENT_CONFIG_VERSION = 2
+
+SEVERITIES = ["Critical", "High", "Medium", "Low", "Info"]

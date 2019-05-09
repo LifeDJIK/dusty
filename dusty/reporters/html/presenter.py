@@ -21,6 +21,7 @@
 """
 
 from dusty.models.finding import DastFinding
+from dusty.constants import SEVERITIES
 
 from .models import HTMLReportMeta, HTMLReportAlert, HTMLReportFinding, HTMLReportError
 
@@ -75,6 +76,7 @@ class HTMLPresenter:
                     severity=item.get_meta("severity", "Info"),
                     description=item.description
                 ))
+        result.sort(key=lambda item: (SEVERITIES.index(item.severity), item.title))
         return result
 
     @property
