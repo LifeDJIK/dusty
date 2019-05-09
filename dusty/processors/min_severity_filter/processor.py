@@ -42,7 +42,8 @@ class Processor(DependentModuleModel, ProcessorModel):
         severity = self.config.get("severity", constants.DEFAULT_SEVERITY)
         log.info("Filtering results below %s level", severity)
         for item in self.context.results:
-            if SEVERITIES.index(item.severity) > SEVERITIES.index(severity):
+            if SEVERITIES.index(item.get_meta("severity", SEVERITIES[-1])) > \
+                    SEVERITIES.index(severity):
                 item.set_meta("information_finding", True)
 
     @staticmethod
