@@ -76,7 +76,7 @@ class HTMLPresenter:
                     severity=item.get_meta("severity", "Info"),
                     description=item.description
                 ))
-        result.sort(key=lambda item: (SEVERITIES.index(item.severity), item.title))
+        result.sort(key=lambda item: (SEVERITIES.index(item.severity), item.tool, item.title))
         return result
 
     @property
