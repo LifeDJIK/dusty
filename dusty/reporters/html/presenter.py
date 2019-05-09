@@ -92,7 +92,8 @@ class HTMLPresenter:
         """ Returns project information findings """
         result = list()
         for item in self.context.results:
-            if item.get_meta("information_finding", False):
+            if item.get_meta("information_finding", False) and \
+                    not item.get_meta("false_positive_finding", False):
                 result.append(self._item_to_finding(item))
         result.sort(key=lambda item: (SEVERITIES.index(item.severity), item.tool, item.title))
         return result
