@@ -32,6 +32,17 @@ class HTMLPresenter:
     def __init__(self, context):
         self.context = context
 
+    @staticmethod
+    def _item_to_finding(item):
+        if isinstance(item, DastFinding):
+            return HTMLReportFinding(
+                tool=item.get_meta("tool", ""),
+                title=item.title,
+                severity=item.get_meta("severity", SEVERITIES[-1]),
+                description=item.description
+            )
+        raise ValueError("Unsupported item type")
+
     @property
     def project_name(self):
         """ Returns project name """
@@ -69,13 +80,10 @@ class HTMLPresenter:
         """ Returns project findings """
         result = list()
         for item in self.context.results:
-            if isinstance(item, DastFinding):
-                result.append(HTMLReportFinding(
-                    tool=item.get_meta("tool", ""),
-                    title=item.title,
-                    severity=item.get_meta("severity", "Info"),
-                    description=item.description
-                ))
+            if item.get_meta("information_finding", False) or \
+                    item.get_meta("false_positive_finding", False):
+                continue
+            result.append(self._item_to_finding(item))
         result.sort(key=lambda item: (SEVERITIES.index(item.severity), item.tool, item.title))
         return result
 
@@ -83,12 +91,20 @@ class HTMLPresenter:
     def project_information_findings(self):
         """ Returns project information findings """
         result = list()
+        for item in self.context.results:
+            if item.get_meta("information_finding", False):
+                result.append(self._item_to_finding(item))
+        result.sort(key=lambda item: (SEVERITIES.index(item.severity), item.tool, item.title))
         return result
 
     @property
     def project_false_positive_findings(self):
         """ Returns project false positive findings """
         result = list()
+        for item in self.context.results:
+            if item.get_meta("false_positive_finding", False):
+                result.append(self._item_to_finding(item))
+        result.sort(key=lambda item: (SEVERITIES.index(item.severity), item.tool, item.title))
         return result
 
     @property
