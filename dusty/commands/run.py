@@ -35,6 +35,7 @@ class Command(ModuleModel, CommandModel):
 
     def __init__(self, argparser):
         """ Initialize command instance, add arguments """
+        super().__init__()
         argparser.add_argument(
             "-e", "--config-variable", dest="config_variable",
             help="name of environment variable with config",
@@ -95,16 +96,6 @@ class Command(ModuleModel, CommandModel):
         # Done
         reporting.flush()
         log.debug("Done")
-
-    @staticmethod
-    def fill_config(data_obj):
-        """ Make sample config """
-        raise NotImplementedError()
-
-    @staticmethod
-    def validate_config(config):
-        """ Validate config """
-        raise NotImplementedError()
 
     @staticmethod
     def get_name():

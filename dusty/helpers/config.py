@@ -35,6 +35,7 @@ class ConfigHelper:
 
     def __init__(self, context):
         """ Initialize context instance """
+        super().__init__()
         self.context = context
 
     def load(self, config_variable, config_file, suite):

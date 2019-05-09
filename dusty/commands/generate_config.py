@@ -37,6 +37,7 @@ class Command(ModuleModel, CommandModel):
 
     def __init__(self, argparser):
         """ Initialize command instance, add arguments """
+        super().__init__()
         argparser.add_argument(
             "-o", "--output", dest="output_file",
             help="path to output file",
@@ -68,16 +69,6 @@ class Command(ModuleModel, CommandModel):
         # Done
         log.info("Made sample config: %s", args.output_file)
         log.debug("Done")
-
-    @staticmethod
-    def fill_config(data_obj):
-        """ Make sample config """
-        raise NotImplementedError()
-
-    @staticmethod
-    def validate_config(config):
-        """ Validate config """
-        raise NotImplementedError()
 
     @staticmethod
     def get_name():
