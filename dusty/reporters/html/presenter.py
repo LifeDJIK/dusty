@@ -110,6 +110,21 @@ class HTMLPresenter:
             type_="warning",
             text="This report is from proof-of-concept version of Dusty 2.0"
         ))
+        if self.project_findings:
+            result.append(HTMLReportAlert(
+                type_="danger",
+                text=f"Security testing FAILED, found {len(self.project_findings)} findings"
+            ))
+        else:
+            result.append(HTMLReportAlert(
+                type_="success",
+                text=f"Security testing PASSED"
+            ))
+        if self.project_errors:
+            result.append(HTMLReportAlert(
+                type_="danger",
+                text=f"During testing {len(self.project_errors)} occurred, result may be incomplete"
+            ))
         return result
 
     @property
