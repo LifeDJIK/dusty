@@ -82,7 +82,7 @@ class HTMLPresenter:
         if testing_time:
             result.append(HTMLReportMeta(
                 name="Testing time",
-                value=f"{testing_time} seconds"
+                value=f"{testing_time} second(s)"
             ))
         return result
 
