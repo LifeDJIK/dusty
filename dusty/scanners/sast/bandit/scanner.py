@@ -44,6 +44,7 @@ class Scanner(DependentModuleModel, ScannerModel):
         delay = random.randrange(0, 15)
         log.info("Sleeping for %d second(s)", delay)
         time.sleep(delay)
+        raise RuntimeError("Scanning is not implemented yet")
 
     @staticmethod
     def fill_config(data_obj):
