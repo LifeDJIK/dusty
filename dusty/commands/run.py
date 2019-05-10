@@ -103,9 +103,9 @@ class Command(ModuleModel, CommandModel):
     def _fill_context_meta(context):
         # Scan types
         context.set_meta("scan_type", list())
-        if context.config["scanners"]["dast"]:
+        if context.config["scanners"].get("dast", None):
             context.get_meta("scan_type").append("dast")
-        if context.config["scanners"]["sast"]:
+        if context.config["scanners"].get("sast", None):
             context.get_meta("scan_type").append("sast")
         # Project name
         if context.config["general"]["settings"].get("project_name", None):
