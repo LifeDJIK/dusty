@@ -85,8 +85,11 @@ class ScanningPerformer(ModuleModel, PerformerModel):
         future_dep_map = dict()
         for item in self.context.scanners:
             scanner = self.context.scanners[item]
-            scanner_type = scanner.__class__.__module__.split(".")[-2]
-            scanner_module = scanner.__class__.__module__.split(".")[-1]
+            scanner_type = scanner.__class__.__module__.split(".")[-3]
+            scanner_module = scanner.__class__.__module__.split(".")[-2]
+            log.debug(scanner.__class__.__module__.split("."))
+            log.debug(scanner_type)
+            log.debug(scanner_module)
             depencies = list()
             for dep in scanner.depends_on() + scanner.run_after():
                 if dep in future_dep_map:
