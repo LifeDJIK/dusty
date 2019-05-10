@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # coding=utf-8
-# pylint: disable=I0011,R0903,W0702,W0703
+# pylint: disable=I0011,R0903,W0702,W0703,R0914
 
 #   Copyright 2019 getcarrier.io
 #
@@ -23,6 +23,8 @@
 import importlib
 import traceback
 import pkgutil
+
+import concurrent.futures
 
 from ruamel.yaml.comments import CommentedMap
 
@@ -70,36 +72,59 @@ class ScanningPerformer(ModuleModel, PerformerModel):
         reporting = self.context.performers.get("reporting", None)
         if reporting:
             reporting.on_start()
-        performed = set()
-        perform_scan_iteration = True
-        while perform_scan_iteration:
-            perform_scan_iteration = False
-            for scanner_module_name in list(self.context.scanners):
-                if scanner_module_name in performed:
-                    continue
-                performed.add(scanner_module_name)
-                perform_scan_iteration = True
-                scanner = self.context.scanners[scanner_module_name]
-                log.info(f"Running {scanner_module_name} ({scanner.get_description()})")
-                if reporting:
-                    reporting.on_scanner_start(scanner_module_name)
-                try:
-                    scanner.execute()
-                except:
-                    log.exception("Scanner %s failed", scanner_module_name)
-                    error = Error(
-                        tool=scanner_module_name,
-                        error=f"Scanner {scanner_module_name} failed",
-                        details=f"```\n{traceback.format_exc()}\n```"
-                    )
-                    self.context.errors.append(error)
-                # Collect scanner results and errors
-                self.context.results.extend(scanner.get_results())
-                self.context.errors.extend(scanner.get_errors())
-                if reporting:
-                    reporting.on_scanner_finish(scanner_module_name)
+        # Create executors
+        executor = dict()
+        settings = self.context.config["general"]["settings"]
+        for scanner_type in self.context.config["scanners"]:
+            max_workers = settings.get("max_concurrent_scanners", dict()).get(scanner_type, 1)
+            executor[scanner_type] = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
+            log.debug("Made %s executor with %d workers", scanner_type, max_workers)
+        # Submit scanners
+        futures = list()
+        future_map = dict()
+        future_dep_map = dict()
+        for item in self.context.scanners:
+            scanner = self.context.scanners[item]
+            scanner_type = scanner.__class__.__module__.split(".")[-2]
+            scanner_module = scanner.__class__.__module__.split(".")[-1]
+            depencies = list()
+            for dep in scanner.depends_on() + scanner.run_after():
+                if dep in future_dep_map:
+                    depencies.append(future_dep_map[dep])
+            log.info(f"Running {item} ({scanner.get_description()})")
+            if reporting:
+                reporting.on_scanner_start(item)
+            future = executor[scanner_type].submit(self._execute_scanner, scanner, depencies)
+            future_dep_map[scanner_module] = future
+            future_map[future] = item
+            futures.append(future)
+        # Wait for executors
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                future.result()
+            except:
+                log.exception("Scanner %s failed", scanner_module)
+                error = Error(
+                    tool=future_map[future],
+                    error=f"Scanner {future_map[future]} failed",
+                    details=f"```\n{traceback.format_exc()}\n```"
+                )
+                self.context.errors.append(error)
+            # Collect scanner results and errors
+            scanner = self.context.scanners[future_map[future]]
+            self.context.results.extend(scanner.get_results())
+            self.context.errors.extend(scanner.get_errors())
+            if reporting:
+                reporting.on_scanner_finish(future_map[future])
+        # All scanners completed
         if reporting:
             reporting.on_finish()
+
+    @staticmethod
+    def _execute_scanner(scanner, depencies):
+        if depencies:
+            concurrent.futures.wait(depencies)
+        scanner.execute()
 
     def get_module_meta(self, module, name, default=None):
         """ Get submodule meta value """
