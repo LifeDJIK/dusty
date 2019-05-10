@@ -46,7 +46,7 @@ class ScanningPerformer(ModuleModel, PerformerModel):
         log.debug("Preparing")
         config = self.context.config["scanners"]
         # Schedule scanners
-        for scanner_type in config:
+        for scanner_type in list(config):
             for scanner_name in list(config[scanner_type]):
                 try:
                     self.schedule_scanner(scanner_type, scanner_name, dict())
