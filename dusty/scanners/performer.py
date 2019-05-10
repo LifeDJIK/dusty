@@ -112,8 +112,13 @@ class ScanningPerformer(ModuleModel, PerformerModel):
                 self.context.errors.append(error)
             # Collect scanner results and errors
             scanner = self.context.scanners[future_map[future]]
-            self.context.results.extend(scanner.get_results())
-            self.context.errors.extend(scanner.get_errors())
+            scanner_type = scanner.__class__.__module__.split(".")[-3]
+            for result in scanner.get_results():
+                result.set_meta("scanner_type", scanner_type)
+                self.context.results.append(result)
+            for error in scanner.get_errors():
+                error.set_meta("scanner_type", scanner_type)
+                self.context.errors.append(error)
             if reporting:
                 reporting.on_scanner_finish(future_map[future])
         # All scanners completed

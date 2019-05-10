@@ -20,8 +20,10 @@
     Error model
 """
 
+from dusty.models.meta import MetaModel
 
-class Error:
+
+class Error(MetaModel):
     """ Error item """
 
     def __init__(self, tool, error, details):

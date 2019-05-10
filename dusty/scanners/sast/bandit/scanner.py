@@ -20,6 +20,9 @@
     Scanner: bandit
 """
 
+import time
+import random
+
 from dusty.tools import log
 from dusty.models.module import DependentModuleModel
 from dusty.models.scanner import ScannerModel
@@ -38,6 +41,9 @@ class Scanner(DependentModuleModel, ScannerModel):
     def execute(self):
         """ Run the scanner """
         log.debug(f"Config: {self.config}")
+        delay = random.randrange(0, 15)
+        log.info("Sleeping for %d second(s)", delay)
+        time.sleep(delay)
 
     @staticmethod
     def fill_config(data_obj):
