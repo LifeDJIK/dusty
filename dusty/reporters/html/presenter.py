@@ -22,6 +22,7 @@
 
 from dusty.models.finding import DastFinding
 from dusty.constants import SEVERITIES
+from dusty.tools import markdown
 
 from .models import HTMLReportMeta, HTMLReportAlert, HTMLReportFinding, HTMLReportError
 
@@ -39,7 +40,7 @@ class HTMLPresenter:
                 tool=item.get_meta("tool", ""),
                 title=item.title,
                 severity=item.get_meta("severity", SEVERITIES[-1]),
-                description=item.description
+                description=markdown.markdown_to_html(item.description)
             )
         raise ValueError("Unsupported item type")
 
@@ -168,7 +169,7 @@ class HTMLPresenter:
             result.append(HTMLReportError(
                 tool=item.tool,
                 title=item.error,
-                description=item.details
+                description=markdown.markdown_to_html(item.details)
             ))
         result.sort(key=lambda item: (item.tool, item.title))
         return result
