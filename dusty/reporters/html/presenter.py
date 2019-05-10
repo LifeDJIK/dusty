@@ -113,7 +113,7 @@ class HTMLPresenter:
         if self.project_errors:
             result.append(HTMLReportAlert(
                 type_="warning",
-                text=f"During testing {len(self.project_errors)} occurred, result may be incomplete"
+                text=f"Errors occurred during testing, result may be incomplete"
             ))
         if self.project_findings:
             result.append(HTMLReportAlert(
