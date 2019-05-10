@@ -56,6 +56,11 @@ class HTMLPresenter:
             name="Project name",
             value=self.context.get_meta("project_name", "Unnamed Project")
         ))
+        if self.context.get_meta("dusty_version", None):
+            result.append(HTMLReportMeta(
+                name="Dusty version",
+                value=self.context.get_meta("dusty_version")
+            ))
         if self.context.get_meta("scan_type", None):
             result.append(HTMLReportMeta(
                 name="Test type",

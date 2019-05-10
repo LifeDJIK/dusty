@@ -19,6 +19,8 @@
     Command: run
 """
 
+import pkg_resources
+
 from dusty.tools import log
 from dusty import constants
 from dusty.models.module import ModuleModel
@@ -110,6 +112,8 @@ class Command(ModuleModel, CommandModel):
         # Project name
         if context.config["general"]["settings"].get("project_name", None):
             context.set_meta("project_name", context.config["general"]["settings"]["project_name"])
+        # Dusty version
+        context.set_meta("dusty_version", pkg_resources.require("dusty")[0].version)
         # DAST target
         if context.config["general"]["scanners"].get("dast", dict()).get("target", None):
             context.set_meta("dast_target", context.config["general"]["scanners"]["dast"]["target"])
