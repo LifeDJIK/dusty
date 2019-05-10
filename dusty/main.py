@@ -20,6 +20,7 @@
     Main entry point
 """
 
+import sys
 import pkgutil
 import argparse
 import importlib
@@ -77,5 +78,6 @@ def main():
         commands[args.command].execute(args)
     except:
         log.exception("Command failed")
+        sys.exit(1)
     # Display bye-bye message
     log.info("All done. Have a nice day")
