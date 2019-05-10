@@ -39,6 +39,8 @@ class ScannerModel(MetaModel):
         """ Get errors """
         return self.errors
 
+    def prepare(self):
+        """ Prepare scanner """
+
     def execute(self):
         """ Run the scanner """
-        raise NotImplementedError()

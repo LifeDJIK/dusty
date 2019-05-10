@@ -52,14 +52,14 @@ class Reporter(DependentModuleModel, ReporterModel):
             handler = logging_loki.LokiQueueHandler(
                 Queue(-1),
                 url=self.config.get("url"),
-                tags={"project": self.context.config["general"]["settings"]["project_name"]},
+                tags={"project": self.context.get_meta("project_name", "Unnamed Project")},
                 auth=auth,
             )
         else:
             mode = "sync"
             handler = logging_loki.LokiHandler(
                 url=self.config.get("url"),
-                tags={"project": self.context.config["general"]["settings"]["project_name"]},
+                tags={"project": self.context.get_meta("project_name", "Unnamed Project")},
                 auth=auth,
             )
         logging.getLogger("").addHandler(handler)

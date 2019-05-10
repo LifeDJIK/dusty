@@ -35,8 +35,8 @@ class Scanner(DependentModuleModel, ScannerModel):
         self.config = \
             self.context.config["scanners"][__name__.split(".")[-3]][__name__.split(".")[-2]]
 
-    def execute(self):
-        """ Run the scanner """
+    def prepare(self):
+        """ Prepare scanner """
         log.debug(f"Config: {self.config}")
         for scanner in ["bandit"]:
             log.info("Adding %s scanner", scanner)
