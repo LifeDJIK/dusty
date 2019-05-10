@@ -54,7 +54,7 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
                 error = Error(
                     tool=processor_name,
                     error=f"Failed to prepare processor {processor_name}",
-                    details=traceback.format_exc()
+                    details=f"```\n{traceback.format_exc()}\n```"
                 )
                 self.context.errors.append(error)
         # Resolve depencies once again
@@ -81,7 +81,7 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
                     error = Error(
                         tool=processor_module_name,
                         error=f"Processor {processor_module_name} failed",
-                        details=traceback.format_exc()
+                        details=f"```\n{traceback.format_exc()}\n```"
                     )
                     self.context.errors.append(error)
                 self.context.errors.extend(processor.get_errors())
@@ -142,7 +142,7 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
             error = Error(
                 tool=processor_name,
                 error=f"Failed to schedule processor {processor_name}",
-                details=traceback.format_exc()
+                details=f"```\n{traceback.format_exc()}\n```"
             )
             self.context.errors.append(error)
 

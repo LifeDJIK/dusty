@@ -58,7 +58,7 @@ class ScanningPerformer(ModuleModel, PerformerModel):
                     error = Error(
                         tool=f"{scanner_type}.{scanner_name}",
                         error=f"Failed to prepare {scanner_type} scanner {scanner_name}",
-                        details=traceback.format_exc()
+                        details=f"```\n{traceback.format_exc()}\n```"
                     )
                     self.context.errors.append(error)
         # Resolve depencies once again
@@ -90,7 +90,7 @@ class ScanningPerformer(ModuleModel, PerformerModel):
                     error = Error(
                         tool=scanner_module_name,
                         error=f"Scanner {scanner_module_name} failed",
-                        details=traceback.format_exc()
+                        details=f"```\n{traceback.format_exc()}\n```"
                     )
                     self.context.errors.append(error)
                 # Collect scanner results and errors
@@ -165,7 +165,7 @@ class ScanningPerformer(ModuleModel, PerformerModel):
             error = Error(
                 tool=f"{scanner_type}.{scanner_name}",
                 error=f"Failed to schedule {scanner_type} scanner {scanner_name}",
-                details=traceback.format_exc()
+                details=f"```\n{traceback.format_exc()}\n```"
             )
             self.context.errors.append(error)
 

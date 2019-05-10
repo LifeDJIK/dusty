@@ -57,7 +57,7 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
                 error = Error(
                     tool=reporter_name,
                     error=f"Failed to prepare reporter {reporter_name}",
-                    details=traceback.format_exc()
+                    details=f"```\n{traceback.format_exc()}\n```"
                 )
                 self.context.errors.append(error)
         # Resolve depencies once again
@@ -123,7 +123,7 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             error = Error(
                 tool=reporter_name,
                 error=f"Failed to schedule reporter {reporter_name}",
-                details=traceback.format_exc()
+                details=f"```\n{traceback.format_exc()}\n```"
             )
             self.context.errors.append(error)
 
@@ -148,7 +148,7 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
                     error = Error(
                         tool=reporter_module_name,
                         error=f"Reporter {reporter_module_name} failed",
-                        details=traceback.format_exc()
+                        details=f"```\n{traceback.format_exc()}\n```"
                     )
                     self.context.errors.append(error)
                 self.context.errors.extend(reporter.get_errors())
@@ -165,7 +165,7 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
                 error = Error(
                     tool=reporter_module_name,
                     error=f"Reporter {reporter_module_name} failed",
-                    details=traceback.format_exc()
+                    details=f"```\n{traceback.format_exc()}\n```"
                 )
                 self.context.errors.append(error)
 
@@ -181,7 +181,7 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
                 error = Error(
                     tool=reporter_module_name,
                     error=f"Reporter {reporter_module_name} failed",
-                    details=traceback.format_exc()
+                    details=f"```\n{traceback.format_exc()}\n```"
                 )
                 self.context.errors.append(error)
 
@@ -197,7 +197,7 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
                 error = Error(
                     tool=reporter_module_name,
                     error=f"Reporter {reporter_module_name} failed",
-                    details=traceback.format_exc()
+                    details=f"```\n{traceback.format_exc()}\n```"
                 )
                 self.context.errors.append(error)
 
@@ -213,7 +213,7 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
                 error = Error(
                     tool=reporter_module_name,
                     error=f"Reporter {reporter_module_name} failed",
-                    details=traceback.format_exc()
+                    details=f"```\n{traceback.format_exc()}\n```"
                 )
                 self.context.errors.append(error)
 
@@ -229,7 +229,7 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
                 error = Error(
                     tool=reporter_module_name,
                     error=f"Reporter {reporter_module_name} failed",
-                    details=traceback.format_exc()
+                    details=f"```\n{traceback.format_exc()}\n```"
                 )
                 self.context.errors.append(error)
 

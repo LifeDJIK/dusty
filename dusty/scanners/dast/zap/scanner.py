@@ -86,7 +86,7 @@ class Scanner(DependentModuleModel, ScannerModel):
             error = Error(
                 tool=self.get_name(),
                 error=f"Exception during ZAP scanning",
-                details=traceback.format_exc()
+                details=f"```\n{traceback.format_exc()}\n```"
             )
             self.errors.append(error)
         finally:
@@ -101,7 +101,7 @@ class Scanner(DependentModuleModel, ScannerModel):
                 error = Error(
                     tool=self.get_name(),
                     error=f"Exception during ZAP results processing",
-                    details=traceback.format_exc()
+                    details=f"```\n{traceback.format_exc()}\n```"
                 )
                 self.errors.append(error)
             pkg_resources.cleanup_resources()
