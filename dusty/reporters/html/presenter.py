@@ -84,6 +84,22 @@ class HTMLPresenter:
                 name="Testing time",
                 value=f"{testing_time} second(s)"
             ))
+        result.append(HTMLReportMeta(
+            name="Total findings",
+            value=str(len(self.project_findings))
+        ))
+        result.append(HTMLReportMeta(
+            name="Total false positives",
+            value=str(len(self.project_false_positive_findings))
+        ))
+        result.append(HTMLReportMeta(
+            name="Total information findings",
+            value=str(len(self.project_information_findings))
+        ))
+        result.append(HTMLReportMeta(
+            name="Total errors",
+            value=str(len(self.project_errors))
+        ))
         return result
 
     @property
