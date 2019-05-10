@@ -25,4 +25,4 @@ import markdown2
 
 def markdown_to_html(text):
     """ Convert markdown to HTML """
-    return markdown2.markdown(text, extras=["tables"])
+    return markdown2.markdown(text, extras=["tables", "fenced-code-blocks"])
