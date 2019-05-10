@@ -21,6 +21,7 @@
 """
 
 import importlib
+import traceback
 import pkgutil
 
 from ruamel.yaml.comments import CommentedMap
@@ -29,6 +30,7 @@ from dusty.tools import log
 from dusty.tools import dependency
 from dusty.models.module import ModuleModel
 from dusty.models.performer import PerformerModel
+from dusty.models.error import Error
 
 
 class ScanningPerformer(ModuleModel, PerformerModel):
@@ -48,14 +50,17 @@ class ScanningPerformer(ModuleModel, PerformerModel):
             for scanner_name in config[scanner_type]:
                 try:
                     self.schedule_scanner(scanner_type, scanner_name, dict())
-                except BaseException as exception:
+                except:
                     log.exception(
                         "Failed to prepare %s scanner %s",
                         scanner_type, scanner_name
                     )
-                    if f"{scanner_type}.{scanner_name}" not in self.context.errors:
-                        self.context.errors[f"{scanner_type}.{scanner_name}"] = list()
-                    self.context.errors[f"{scanner_type}.{scanner_name}"].append(str(exception))
+                    error = Error(
+                        tool=f"{scanner_type}.{scanner_name}",
+                        error=f"Failed to prepare {scanner_type} scanner {scanner_name}",
+                        details=traceback.format_exc()
+                    )
+                    self.context.errors.append(error)
         # Resolve depencies once again
         dependency.resolve_depencies(self.context.scanners)
 
@@ -75,19 +80,22 @@ class ScanningPerformer(ModuleModel, PerformerModel):
                 performed.add(scanner_module_name)
                 perform_scan_iteration = True
                 scanner = self.context.scanners[scanner_module_name]
-                if scanner_module_name not in self.context.errors:
-                    self.context.errors[scanner_module_name] = list()
                 log.info(f"Running {scanner_module_name} ({scanner.get_description()})")
                 if reporting:
                     reporting.on_scanner_start(scanner_module_name)
                 try:
                     scanner.execute()
-                except BaseException as exception:
+                except:
                     log.exception("Scanner %s failed", scanner_module_name)
-                    self.context.errors[scanner_module_name].append(str(exception))
+                    error = Error(
+                        tool=scanner_module_name,
+                        error=f"Scanner {scanner_module_name} failed",
+                        details=traceback.format_exc()
+                    )
+                    self.context.errors.append(error)
                 # Collect scanner results and errors
                 self.context.results.extend(scanner.get_results())
-                self.context.errors[scanner_module_name].extend(scanner.get_errors())
+                self.context.errors.extend(scanner.get_errors())
                 if reporting:
                     reporting.on_scanner_finish(scanner_module_name)
         if reporting:
@@ -149,14 +157,17 @@ class ScanningPerformer(ModuleModel, PerformerModel):
             dependency.resolve_depencies(self.context.scanners)
             # Done
             log.debug("Scheduled scanner %s.%s", scanner_type, scanner_name)
-        except BaseException as exception:
+        except:
             log.exception(
                 "Failed to schedule %s scanner %s",
                 scanner_type, scanner_name
             )
-            if f"{scanner_type}.{scanner_name}" not in self.context.errors:
-                self.context.errors[f"{scanner_type}.{scanner_name}"] = list()
-            self.context.errors[f"{scanner_type}.{scanner_name}"].append(str(exception))
+            error = Error(
+                tool=f"{scanner_type}.{scanner_name}",
+                error=f"Failed to schedule {scanner_type} scanner {scanner_name}",
+                details=traceback.format_exc()
+            )
+            self.context.errors.append(error)
 
     @staticmethod
     def fill_config(data_obj):

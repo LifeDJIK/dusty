@@ -25,6 +25,7 @@ import json
 import time
 import base64
 import urllib
+import traceback
 import subprocess
 import pkg_resources
 
@@ -35,6 +36,7 @@ from zapv2 import ZAPv2
 from dusty.tools import log, status, url
 from dusty.models.module import DependentModuleModel
 from dusty.models.scanner import ScannerModel
+from dusty.models.error import Error
 
 from . import constants
 from .parser import parse_results
@@ -63,7 +65,12 @@ class Scanner(DependentModuleModel, ScannerModel):
             self._start_zap()
             if not self._wait_for_zap_start():
                 log.error("ZAP failed to start")
-                self.errors.append("ZAP daemon failed to start")
+                error = Error(
+                    tool=self.get_name(),
+                    error="ZAP failed to start",
+                    details="ZAP daemon failed to start"
+                )
+                self.errors.append(error)
                 return
             log.info("Target: %s", self.config.get("target"))
             self._prepare_context()
@@ -74,9 +81,14 @@ class Scanner(DependentModuleModel, ScannerModel):
             self._wait_for_passive_scan()
             self._active_scan()
             self._wait_for_passive_scan()
-        except BaseException as exception:
+        except:
             log.exception("Exception during ZAP scanning")
-            self.errors.append(str(exception))
+            error = Error(
+                tool=self.get_name(),
+                error=f"Exception during ZAP scanning",
+                details=traceback.format_exc()
+            )
+            self.errors.append(error)
         finally:
             try:
                 # Get report
@@ -84,9 +96,14 @@ class Scanner(DependentModuleModel, ScannerModel):
                 zap_report = self._zap_api.core.jsonreport()
                 # Parse JSON
                 parse_results(zap_report, self)
-            except BaseException as exception:
+            except:
                 log.exception("Exception during ZAP results processing")
-                self.errors.append(str(exception))
+                error = Error(
+                    tool=self.get_name(),
+                    error=f"Exception during ZAP results processing",
+                    details=traceback.format_exc()
+                )
+                self.errors.append(error)
             pkg_resources.cleanup_resources()
             self._stop_zap()
 

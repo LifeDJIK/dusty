@@ -21,6 +21,7 @@
 """
 
 import importlib
+import traceback
 import pkgutil
 
 from ruamel.yaml.comments import CommentedMap
@@ -29,6 +30,7 @@ from dusty.tools import log
 from dusty.tools import dependency
 from dusty.models.module import ModuleModel
 from dusty.models.performer import PerformerModel
+from dusty.models.error import Error
 
 
 class ProcessingPerformer(ModuleModel, PerformerModel):
@@ -47,11 +49,14 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
         for processor_name in config:
             try:
                 self.schedule_processor(processor_name, dict())
-            except BaseException as exception:
+            except:
                 log.exception("Failed to prepare processor %s", processor_name)
-                if processor_name not in self.context.errors:
-                    self.context.errors[processor_name] = list()
-                self.context.errors[processor_name].append(str(exception))
+                error = Error(
+                    tool=processor_name,
+                    error=f"Failed to prepare processor {processor_name}",
+                    details=traceback.format_exc()
+                )
+                self.context.errors.append(error)
         # Resolve depencies once again
         dependency.resolve_depencies(self.context.processors)
 
@@ -69,14 +74,17 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
                 performed.add(processor_module_name)
                 perform_processing_iteration = True
                 processor = self.context.processors[processor_module_name]
-                if processor_module_name not in self.context.errors:
-                    self.context.errors[processor_module_name] = list()
                 try:
                     processor.execute()
-                except BaseException as exception:
+                except:
                     log.exception("Processor %s failed", processor_module_name)
-                    self.context.errors[processor_module_name].append(str(exception))
-                self.context.errors[processor_module_name].extend(processor.get_errors())
+                    error = Error(
+                        tool=processor_module_name,
+                        error=f"Processor {processor_module_name} failed",
+                        details=traceback.format_exc()
+                    )
+                    self.context.errors.append(error)
+                self.context.errors.extend(processor.get_errors())
 
     def get_module_meta(self, module, name, default=None):
         """ Get submodule meta value """
@@ -129,11 +137,14 @@ class ProcessingPerformer(ModuleModel, PerformerModel):
             dependency.resolve_depencies(self.context.processors)
             # Done
             log.debug("Scheduled processor %s", processor_name)
-        except BaseException as exception:
+        except:
             log.exception("Failed to schedule processor %s", processor_name)
-            if processor_name not in self.context.errors:
-                self.context.errors[processor_name] = list()
-            self.context.errors[processor_name].append(str(exception))
+            error = Error(
+                tool=processor_name,
+                error=f"Failed to schedule processor {processor_name}",
+                details=traceback.format_exc()
+            )
+            self.context.errors.append(error)
 
     @staticmethod
     def fill_config(data_obj):

@@ -32,6 +32,7 @@ def init(level=logging.INFO):
         datefmt=constants.LOG_DATE_FORMAT,
         format=constants.LOG_FORMAT,
     )
+    logging.raiseExceptions = False
     # Disable requests/urllib3 logging
     logging.getLogger("requests").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)

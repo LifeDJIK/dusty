@@ -21,6 +21,7 @@
 """
 
 import importlib
+import traceback
 import pkgutil
 
 from ruamel.yaml.comments import CommentedMap
@@ -30,6 +31,7 @@ from dusty.tools import dependency
 from dusty.models.module import ModuleModel
 from dusty.models.performer import PerformerModel
 from dusty.models.reporter import ReporterModel
+from dusty.models.error import Error
 
 from . import constants
 
@@ -50,11 +52,14 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
         for reporter_name in list(config) + constants.DEFAULT_REPORTERS:
             try:
                 self.schedule_reporter(reporter_name, dict())
-            except BaseException as exception:
+            except:
                 log.exception("Failed to prepare reporter %s", reporter_name)
-                if reporter_name not in self.context.errors:
-                    self.context.errors[reporter_name] = list()
-                self.context.errors[reporter_name].append(str(exception))
+                error = Error(
+                    tool=reporter_name,
+                    error=f"Failed to prepare reporter {reporter_name}",
+                    details=traceback.format_exc()
+                )
+                self.context.errors.append(error)
         # Resolve depencies once again
         dependency.resolve_depencies(self.context.reporters)
 
@@ -113,11 +118,14 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             dependency.resolve_depencies(self.context.reporters)
             # Done
             log.debug("Scheduled reporter %s", reporter_name)
-        except BaseException as exception:
+        except:
             log.exception("Failed to schedule reporter %s", reporter_name)
-            if reporter_name not in self.context.errors:
-                self.context.errors[reporter_name] = list()
-            self.context.errors[reporter_name].append(str(exception))
+            error = Error(
+                tool=reporter_name,
+                error=f"Failed to schedule reporter {reporter_name}",
+                details=traceback.format_exc()
+            )
+            self.context.errors.append(error)
 
     def report(self):
         """ Report """
@@ -133,14 +141,17 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
                 performed.add(reporter_module_name)
                 perform_report_iteration = True
                 reporter = self.context.reporters[reporter_module_name]
-                if reporter_module_name not in self.context.errors:
-                    self.context.errors[reporter_module_name] = list()
                 try:
                     reporter.report()
-                except BaseException as exception:
+                except:
                     log.exception("Reporter %s failed", reporter_module_name)
-                    self.context.errors[reporter_module_name].append(str(exception))
-                self.context.errors[reporter_module_name].extend(reporter.get_errors())
+                    error = Error(
+                        tool=reporter_module_name,
+                        error=f"Reporter {reporter_module_name} failed",
+                        details=traceback.format_exc()
+                    )
+                    self.context.errors.append(error)
+                self.context.errors.extend(reporter.get_errors())
 
     def on_start(self):
         """ Called when testing starts """
@@ -149,11 +160,14 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             reporter = self.context.reporters[reporter_module_name]
             try:
                 reporter.on_start()
-            except BaseException as exception:
+            except:
                 log.exception("Reporter %s failed", reporter_module_name)
-                if reporter_module_name not in self.context.errors:
-                    self.context.errors[reporter_module_name] = list()
-                self.context.errors[reporter_module_name].append(str(exception))
+                error = Error(
+                    tool=reporter_module_name,
+                    error=f"Reporter {reporter_module_name} failed",
+                    details=traceback.format_exc()
+                )
+                self.context.errors.append(error)
 
     def on_finish(self):
         """ Called when testing ends """
@@ -162,11 +176,14 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             reporter = self.context.reporters[reporter_module_name]
             try:
                 reporter.on_finish()
-            except BaseException as exception:
+            except:
                 log.exception("Reporter %s failed", reporter_module_name)
-                if reporter_module_name not in self.context.errors:
-                    self.context.errors[reporter_module_name] = list()
-                self.context.errors[reporter_module_name].append(str(exception))
+                error = Error(
+                    tool=reporter_module_name,
+                    error=f"Reporter {reporter_module_name} failed",
+                    details=traceback.format_exc()
+                )
+                self.context.errors.append(error)
 
     def on_scanner_start(self, scanner):
         """ Called when scanner starts """
@@ -175,11 +192,14 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             reporter = self.context.reporters[reporter_module_name]
             try:
                 reporter.on_scanner_start(scanner)
-            except BaseException as exception:
+            except:
                 log.exception("Reporter %s failed", reporter_module_name)
-                if reporter_module_name not in self.context.errors:
-                    self.context.errors[reporter_module_name] = list()
-                self.context.errors[reporter_module_name].append(str(exception))
+                error = Error(
+                    tool=reporter_module_name,
+                    error=f"Reporter {reporter_module_name} failed",
+                    details=traceback.format_exc()
+                )
+                self.context.errors.append(error)
 
     def on_scanner_finish(self, scanner):
         """ Called when scanner ends """
@@ -188,11 +208,14 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             reporter = self.context.reporters[reporter_module_name]
             try:
                 reporter.on_scanner_finish(scanner)
-            except BaseException as exception:
+            except:
                 log.exception("Reporter %s failed", reporter_module_name)
-                if reporter_module_name not in self.context.errors:
-                    self.context.errors[reporter_module_name] = list()
-                self.context.errors[reporter_module_name].append(str(exception))
+                error = Error(
+                    tool=reporter_module_name,
+                    error=f"Reporter {reporter_module_name} failed",
+                    details=traceback.format_exc()
+                )
+                self.context.errors.append(error)
 
     def flush(self):
         """ Flush results """
@@ -201,11 +224,14 @@ class ReportingPerformer(ModuleModel, PerformerModel, ReporterModel):
             reporter = self.context.reporters[reporter_module_name]
             try:
                 reporter.flush()
-            except BaseException as exception:
+            except:
                 log.exception("Reporter %s failed", reporter_module_name)
-                if reporter_module_name not in self.context.errors:
-                    self.context.errors[reporter_module_name] = list()
-                self.context.errors[reporter_module_name].append(str(exception))
+                error = Error(
+                    tool=reporter_module_name,
+                    error=f"Reporter {reporter_module_name} failed",
+                    details=traceback.format_exc()
+                )
+                self.context.errors.append(error)
 
     @staticmethod
     def fill_config(data_obj):
