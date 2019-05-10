@@ -85,6 +85,8 @@ class Command(ModuleModel, CommandModel):
         scanning.validate_config(context.config)
         processing.validate_config(context.config)
         reporting.validate_config(context.config)
+        # Add meta to context
+        self._fill_context_meta(context)
         # Prepare
         scanning.prepare()
         processing.prepare()
@@ -96,6 +98,26 @@ class Command(ModuleModel, CommandModel):
         # Done
         reporting.flush()
         log.debug("Done")
+
+    @staticmethod
+    def _fill_context_meta(context):
+        # Scan types
+        context.set_meta("scan_type", list())
+        if context.config["scanners"]["dast"]:
+            context.get_meta("scan_type").extend("dast")
+        if context.config["scanners"]["sast"]:
+            context.get_meta("scan_type").extend("sast")
+        # Project name
+        if context.config["general"]["settings"].get("project_name", None):
+            context.set_meta("project_name", context.config["general"]["settings"]["project_name"])
+        # DAST target
+        if context.config["general"]["scanners"]["dast"].get("target", None):
+            context.set_meta("dast_target", context.config["general"]["scanners"]["dast"]["target"])
+        # SAST code
+        if context.config["general"]["scanners"]["sast"].get("code_path", None):
+            context.set_meta(
+                "sast_code_path", context.config["general"]["scanners"]["sast"]["code_path"]
+            )
 
     @staticmethod
     def get_name():

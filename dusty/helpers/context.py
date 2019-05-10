@@ -22,9 +22,10 @@
 
 from dusty.tools import log
 from dusty.tools.dict import LastUpdatedOrderedDict
+from dusty.models.meta import MetaModel
 
 
-class RunContext:
+class RunContext(MetaModel):
     """ Holds invocation context """
 
     def __init__(self, args):

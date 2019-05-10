@@ -46,7 +46,7 @@ class HTMLPresenter:
     @property
     def project_name(self):
         """ Returns project name """
-        return self.context.config["general"]["settings"]["project_name"]
+        return self.context.get_meta("project_name", "Unnamed Project")
 
     @property
     def project_meta(self):
@@ -54,15 +54,31 @@ class HTMLPresenter:
         result = list()
         result.append(HTMLReportMeta(
             name="Project name",
-            value=self.context.config["general"]["settings"]["project_name"]
+            value=self.context.get_meta("project_name", "Unnamed Project")
         ))
+        if self.context.get_meta("scan_type", None):
+            result.append(HTMLReportMeta(
+                name="Test type",
+                value=", ".join([item.upper() for item in self.context.get_meta("scan_type")])
+            ))
+        if self.context.get_meta("dast_target", None):
+            result.append(HTMLReportMeta(
+                name="DAST target",
+                value=self.context.get_meta("dast_target")
+            ))
+        if self.context.get_meta("sast_code_path", None):
+            result.append(HTMLReportMeta(
+                name="SAST code path",
+                value=self.context.get_meta("sast_code_path")
+            ))
         testing_time = self.context.performers["reporting"].get_module_meta(
-            "time_meta", "testing_run_time", "N/A"
+            "time_meta", "testing_run_time", None
         )
-        result.append(HTMLReportMeta(
-            name="Testing time",
-            value=f"{testing_time} seconds"
-        ))
+        if testing_time:
+            result.append(HTMLReportMeta(
+                name="Testing time",
+                value=f"{testing_time} seconds"
+            ))
         return result
 
     @property
