@@ -111,10 +111,10 @@ class Command(ModuleModel, CommandModel):
         if context.config["general"]["settings"].get("project_name", None):
             context.set_meta("project_name", context.config["general"]["settings"]["project_name"])
         # DAST target
-        if context.config["general"]["scanners"]["dast"].get("target", None):
+        if context.config["general"]["scanners"].get("dast", dict()).get("target", None):
             context.set_meta("dast_target", context.config["general"]["scanners"]["dast"]["target"])
         # SAST code
-        if context.config["general"]["scanners"]["sast"].get("code_path", None):
+        if context.config["general"]["scanners"].get("sast", dict()).get("code_path", None):
             context.set_meta(
                 "sast_code_path", context.config["general"]["scanners"]["sast"]["code_path"]
             )
