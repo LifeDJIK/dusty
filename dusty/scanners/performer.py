@@ -103,7 +103,7 @@ class ScanningPerformer(ModuleModel, PerformerModel):
             try:
                 future.result()
             except:
-                log.exception("Scanner %s failed", scanner_module)
+                log.exception("Scanner %s failed", future_map[future])
                 error = Error(
                     tool=future_map[future],
                     error=f"Scanner {future_map[future]} failed",
