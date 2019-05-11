@@ -118,9 +118,9 @@ class Command(ModuleModel, CommandModel):
         if context.config["general"]["scanners"].get("dast", dict()).get("target", None):
             context.set_meta("dast_target", context.config["general"]["scanners"]["dast"]["target"])
         # SAST code
-        if context.config["general"]["scanners"].get("sast", dict()).get("code_path", None):
+        if context.config["general"]["scanners"].get("sast", dict()).get("code", None):
             context.set_meta(
-                "sast_code_path", context.config["general"]["scanners"]["sast"]["code_path"]
+                "sast_code", context.config["general"]["scanners"]["sast"]["code"]
             )
 
     @staticmethod

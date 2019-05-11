@@ -72,10 +72,10 @@ class HTMLPresenter:
                 name="DAST target",
                 value=self.context.get_meta("dast_target")
             ))
-        if self.context.get_meta("sast_code_path", None):
+        if self.context.get_meta("sast_code", None):
             result.append(HTMLReportMeta(
-                name="SAST code path",
-                value=self.context.get_meta("sast_code_path")
+                name="SAST code",
+                value=self.context.get_meta("sast_code")
             ))
         testing_time = self.context.performers["reporting"].get_module_meta(
             "time_meta", "testing_run_time", None
