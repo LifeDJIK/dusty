@@ -65,8 +65,3 @@ class Scanner(DependentModuleModel, ScannerModel):
     def get_description():
         """ Module description or help message """
         return "SAST scanner"
-
-    @staticmethod
-    def run_after():
-        """ Return optional depencies """
-        return ["zap"]
