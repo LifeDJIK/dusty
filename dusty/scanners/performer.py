@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # coding=utf-8
-# pylint: disable=I0011,R0903,W0702,W0703,R0914
+# pylint: disable=I0011,R0903,W0702,W0703,R0914,R0912,R0915
 
 #   Copyright 2019 getcarrier.io
 #
@@ -23,6 +23,7 @@
 import importlib
 import traceback
 import pkgutil
+import time
 
 import concurrent.futures
 
@@ -33,6 +34,8 @@ from dusty.tools import dependency
 from dusty.models.module import ModuleModel
 from dusty.models.performer import PerformerModel
 from dusty.models.error import Error
+
+from . import constants
 
 
 class ScanningPerformer(ModuleModel, PerformerModel):
@@ -70,8 +73,6 @@ class ScanningPerformer(ModuleModel, PerformerModel):
         """ Perform action """
         log.info("Starting scanning")
         reporting = self.context.performers.get("reporting", None)
-        if reporting:
-            reporting.on_start()
         # Create executors
         executor = dict()
         settings = self.context.config["general"]["settings"]
@@ -79,6 +80,9 @@ class ScanningPerformer(ModuleModel, PerformerModel):
             max_workers = settings.get("max_concurrent_scanners", dict()).get(scanner_type, 1)
             executor[scanner_type] = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
             log.info("Made %s executor with %d workers", scanner_type.upper(), max_workers)
+        # Starting scanning
+        if reporting:
+            reporting.on_start()
         # Submit scanners
         futures = list()
         future_map = dict()
@@ -91,36 +95,56 @@ class ScanningPerformer(ModuleModel, PerformerModel):
             for dep in scanner.depends_on() + scanner.run_after():
                 if dep in future_dep_map:
                     depencies.append(future_dep_map[dep])
-            log.info(f"Running {item} ({scanner.get_description()})")
-            if reporting:
-                reporting.on_scanner_start(item)
             future = executor[scanner_type].submit(self._execute_scanner, scanner, depencies)
             future_dep_map[scanner_module] = future
             future_map[future] = item
             futures.append(future)
-        # Wait for executors
-        for future in concurrent.futures.as_completed(futures):
-            try:
-                future.result()
-            except:
-                log.exception("Scanner %s failed", future_map[future])
-                error = Error(
-                    tool=future_map[future],
-                    error=f"Scanner {future_map[future]} failed",
-                    details=f"```\n{traceback.format_exc()}\n```"
-                )
-                self.context.errors.append(error)
-            # Collect scanner results and errors
-            scanner = self.context.scanners[future_map[future]]
-            scanner_type = scanner.__class__.__module__.split(".")[-3]
-            for result in scanner.get_results():
-                result.set_meta("scanner_type", scanner_type)
-                self.context.results.append(result)
-            for error in scanner.get_errors():
-                error.set_meta("scanner_type", scanner_type)
-                self.context.errors.append(error)
-            if reporting:
-                reporting.on_scanner_finish(future_map[future])
+        # Wait for executors to start and finish
+        started = set()
+        finished = set()
+        while True:
+            # Check for started executors
+            for future in futures:
+                if future not in started and (future.running() or future.done()):
+                    item = future_map[future]
+                    scanner = self.context.scanners[item]
+                    log.info(f"Started {item} ({scanner.get_description()})")
+                    if reporting:
+                        reporting.on_scanner_start(item)
+                    # Add to started set
+                    started.add(future)
+            # Check for finished executors
+            for future in futures:
+                if future not in finished and future.done():
+                    item = future_map[future]
+                    try:
+                        future.result()
+                    except:
+                        log.exception("Scanner %s failed", item)
+                        error = Error(
+                            tool=item,
+                            error=f"Scanner {item} failed",
+                            details=f"```\n{traceback.format_exc()}\n```"
+                        )
+                        self.context.errors.append(error)
+                    # Collect scanner results and errors
+                    scanner = self.context.scanners[item]
+                    scanner_type = scanner.__class__.__module__.split(".")[-3]
+                    for result in scanner.get_results():
+                        result.set_meta("scanner_type", scanner_type)
+                        self.context.results.append(result)
+                    for error in scanner.get_errors():
+                        error.set_meta("scanner_type", scanner_type)
+                        self.context.errors.append(error)
+                    if reporting:
+                        reporting.on_scanner_finish(item)
+                    # Add to finished set
+                    finished.add(future)
+            # Exit if all executors done
+            if self._all_futures_done(futures):
+                break
+            # Sleep for some short time
+            time.sleep(constants.EXECUTOR_STATUS_CHECK_INTERVAL)
         # All scanners completed
         if reporting:
             reporting.on_finish()
@@ -130,6 +154,13 @@ class ScanningPerformer(ModuleModel, PerformerModel):
         if depencies:
             concurrent.futures.wait(depencies)
         scanner.execute()
+
+    @staticmethod
+    def _all_futures_done(futures):
+        for item in futures:
+            if not item.done():
+                return False
+        return True
 
     def get_module_meta(self, module, name, default=None):
         """ Get submodule meta value """
