@@ -60,6 +60,7 @@ class Command(ModuleModel, CommandModel):
         data_obj.insert(len(data_obj), "example", CommentedMap(), comment="Example test suite")
         data_obj["example"].insert(0, "general", CommentedMap(), comment="General config")
         data_obj["example"]["general"].insert(0, "settings", CommentedMap(), comment="Settings")
+        self._fill_settings(data_obj["example"]["general"]["settings"])
         scanning.fill_config(data_obj["example"])
         processing.fill_config(data_obj["example"])
         reporting.fill_config(data_obj["example"])
@@ -70,6 +71,28 @@ class Command(ModuleModel, CommandModel):
         # Done
         log.info("Made sample config: %s", args.output_file)
         log.debug("Done")
+
+    @staticmethod
+    def _fill_settings(data_obj):
+        data_obj.insert(len(data_obj), "project_name", "CARRIER-TEST", comment="Project name")
+        data_obj.insert(
+            len(data_obj),
+            "project_description", "Carrier Test Application",
+            comment="Project description (or application name)"
+        )
+        data_obj.insert(
+            len(data_obj), "environment_name", "staging", comment="Environment under testing"
+        )
+        data_obj.insert(
+            len(data_obj), "build_id", "#1", comment="Build number (or some other identifier)"
+        )
+        data_obj.insert(
+            len(data_obj),
+            "max_concurrent_scanners", CommentedMap(),
+            comment="Maximum number of concurrent scanners"
+        )
+        data_obj["max_concurrent_scanners"].insert(0, "dast", 1)
+        data_obj["max_concurrent_scanners"].insert(1, "sast", 4)
 
     @staticmethod
     def get_name():

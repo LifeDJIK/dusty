@@ -44,6 +44,7 @@ class Reporter(DependentModuleModel, ReporterModel):
         """ Report """
         log.info("Sending mail to %s", self.config.get("mail_to"))
         # Prepare email
+        subject = self.config.get("subject", "DAST scanning results")
         environment = Environment(
             loader=PackageLoader(
                 "dusty",
@@ -68,7 +69,6 @@ class Reporter(DependentModuleModel, ReporterModel):
             int(self.config.get("port", constants.DEFAULT_SERVER_PORT))
         )
         mail_to = [item.strip() for item in self.config.get("mail_to").split(",")]
-        subject = self.config.get("subject", "DAST scanning results")
         helper.send(
             mail_to, subject, html_body=html_body, attachments=attachments
         )
@@ -78,7 +78,9 @@ class Reporter(DependentModuleModel, ReporterModel):
         """ Make sample config """
         data_obj.insert(len(data_obj), "server", "smtp.office365.com", comment="SMTP server host")
         data_obj.insert(len(data_obj), "port", "587", comment="(optional) SMTP server port")
-        data_obj.insert(len(data_obj), "login", "some_username", comment="SMTP server login")
+        data_obj.insert(
+            len(data_obj), "login", "some_username@example.com", comment="SMTP server login"
+        )
         data_obj.insert(
             len(data_obj), "password", "SomeSecurePassword", comment="SMTP server password"
         )
