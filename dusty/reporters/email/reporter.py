@@ -44,7 +44,17 @@ class Reporter(DependentModuleModel, ReporterModel):
         """ Report """
         log.info("Sending mail to %s", self.config.get("mail_to"))
         # Prepare email
-        subject = self.config.get("subject", "DAST scanning results")
+        subject = self.config.get(
+            "subject",
+            "{} {} {} {} {} scanning {} results".format(
+                self.context.get_meta("project_name", "UNKNOWN"),
+                self.context.get_meta("project_description", "Unnamed"),
+                self.context.get_meta("environment_name", "unknown"),
+                self.context.get_meta("testing_type", "UNKN"),
+                self.context.get_meta("scan_type", "unknown"),
+                self.context.get_meta("build_id", "#0"),
+            )
+        )
         environment = Environment(
             loader=PackageLoader(
                 "dusty",
