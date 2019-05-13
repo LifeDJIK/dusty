@@ -42,7 +42,7 @@ class Reporter(DependentModuleModel, ReporterModel):
 
     def report(self):
         """ Report """
-        log.info("Sending mail to %s", ", ".join(self.config.get("mail_to")))
+        log.info("Sending mail to %s", self.config.get("mail_to"))
         # Prepare email
         environment = Environment(
             loader=PackageLoader(
