@@ -61,7 +61,7 @@ class EmailHelper:
         except:  # pylint: disable=W0702
             log.exception("Failed to connect to SMTP server")
             error = Error(
-                tool="Email",
+                tool="EMail",
                 error="Failed to connect to SMTP server",
                 details=f"```\n{traceback.format_exc()}\n```"
             )
@@ -95,7 +95,7 @@ class EmailHelper:
         except:  # pylint: disable=W0702
             log.exception("Failed to send email")
             error = Error(
-                tool="Email",
+                tool="EMail",
                 error="Failed to send email",
                 details=f"```\n{traceback.format_exc()}\n```"
             )

@@ -100,7 +100,7 @@ class Reporter(DependentModuleModel, ReporterModel):
     @staticmethod
     def run_after():
         """ Return optional depencies """
-        return ["emails"]
+        return ["email"]
 
     @staticmethod
     def get_name():

@@ -55,6 +55,7 @@ class Reporter(DependentModuleModel, ReporterModel):
         data = template.render(presenter=HTMLPresenter(self.context))
         with open(file, "w") as report:
             report.write(data)
+        self.set_meta("report_file", file)
 
     @staticmethod
     def fill_config(data_obj):
