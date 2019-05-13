@@ -52,7 +52,6 @@ class Reporter(DependentModuleModel, ReporterModel):
             autoescape=select_autoescape(["html", "xml"])
         )
         template = environment.get_template("email.html")
-        subject = self.config.get("subject", "DAST scanning results")
         html_body = template.render(body="Please see the results attached.")
         attachments = list()
         # Attach HTML report (if any)
@@ -68,8 +67,10 @@ class Reporter(DependentModuleModel, ReporterModel):
             self.config.get("password"),
             int(self.config.get("port", constants.DEFAULT_SERVER_PORT))
         )
+        mail_to = [item.strip() for item in self.config.get("mail_to").split(",")]
+        subject = self.config.get("subject", "DAST scanning results")
         helper.send(
-            self.config.get("mail_to"), subject, html_body=html_body, attachments=attachments
+            mail_to, subject, html_body=html_body, attachments=attachments
         )
 
     @staticmethod
