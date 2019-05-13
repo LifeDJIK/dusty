@@ -124,12 +124,7 @@
                 </div>
             </div>
 
-            {% if presenter.project_findings %}
-            <div class="row">
-                <div class="col">
-                    <h1>Findings</h1>
-                </div>
-            </div>
+            {% macro findings_table(findings) -%}
             <div class="row">
                 <div class="col">
                     <table class="table table-striped">
@@ -141,7 +136,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                          {% for item in presenter.project_findings %}
+                          {% for item in findings %}
                           <tr class="header">
                               <td>{{ item.tool }}</td>
                               <td>{{ item.title }} <span>+</span></td>
@@ -153,6 +148,11 @@
                                     <!-- Item description start -->
                                     {{ item.description|safe }}
                                     <!-- Item description end -->
+                                    {% if item.findings %}
+                                    <!-- Item findings start -->
+                                    {{ findings_table(item.findings) }}
+                                    <!-- Item findings end -->
+                                    {% endif %}
                                   </div>
                               </td>
                           </tr>
@@ -161,6 +161,15 @@
                     </table>
                 </div>
             </div>
+            {%- endmacro %}
+
+            {% if presenter.project_findings %}
+            <div class="row">
+                <div class="col">
+                    <h1>Findings</h1>
+                </div>
+            </div>
+            {{ findings_table(presenter.project_findings) }}
             {% endif %}
 
             {% if presenter.project_information_findings %}
@@ -169,37 +178,7 @@
                     <h1>Information and findings below minimal severity level</h1>
                 </div>
             </div>
-            <div class="row">
-                <div class="col">
-                    <table class="table table-striped">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th>Tool name</th>
-                                <th>Description</th>
-                                <th>Severity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in presenter.project_information_findings %}
-                            <tr class="header">
-                                <td>{{ item.tool }}</td>
-                                <td>{{ item.title }} <span>+</span></td>
-                                <td>{{ item.severity }}</td>
-                            </tr>
-                            <tr class="description">
-                                <td colspan="3">
-                                    <div>
-                                        <!-- Item description start -->
-                                        {{ item.description|safe }}
-                                        <!-- Item description end -->
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            {{ findings_table(presenter.project_information_findings) }}
             {% endif %}
 
             {% if presenter.project_false_positive_findings %}
@@ -208,37 +187,7 @@
                     <h1>False positives</h1>
                 </div>
             </div>
-            <div class="row">
-                <div class="col">
-                    <table class="table table-striped">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th>Tool name</th>
-                                <th>Description</th>
-                                <th>Severity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in presenter.project_false_positive_findings %}
-                            <tr class="header">
-                                <td>{{ item.tool }}</td>
-                                <td>{{ item.title }} <span>+</span></td>
-                                <td>{{ item.severity }}</td>
-                            </tr>
-                            <tr class="description">
-                                <td colspan="3">
-                                    <div>
-                                        <!-- Item description start -->
-                                        {{ item.description|safe }}
-                                        <!-- Item description end -->
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            {{ findings_table(presenter.project_false_positive_findings) }}
             {% endif %}
 
             {% if presenter.project_errors %}
