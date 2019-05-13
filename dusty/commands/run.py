@@ -112,6 +112,25 @@ class Command(ModuleModel, CommandModel):
         # Project name
         if context.config["general"]["settings"].get("project_name", None):
             context.set_meta("project_name", context.config["general"]["settings"]["project_name"])
+        # Project description
+        if context.config["general"]["settings"].get("project_description", None):
+            context.set_meta(
+                "project_description", context.config["general"]["settings"]["project_description"]
+            )
+        # Environment name
+        if context.config["general"]["settings"].get("environment_name", None):
+            context.set_meta(
+                "environment_name", context.config["general"]["settings"]["environment_name"]
+            )
+        # Testing type
+        if context.config["general"]["settings"].get("testing_type", None):
+            context.set_meta("testing_type", context.config["general"]["settings"]["testing_type"])
+        # Scan type
+        if context.config["general"]["settings"].get("scan_type", None):
+            context.set_meta("scan_type", context.config["general"]["settings"]["scan_type"])
+        # Build ID
+        if context.config["general"]["settings"].get("build_id", None):
+            context.set_meta("build_id", context.config["general"]["settings"]["build_id"])
         # Dusty version
         context.set_meta("dusty_version", pkg_resources.require("dusty")[0].version)
         # DAST target
