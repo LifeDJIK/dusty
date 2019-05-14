@@ -28,6 +28,7 @@ from dusty.models.reporter import ReporterModel
 from dusty.helpers.email import EmailHelper
 
 from . import constants
+from .presenter import EMailPresenter
 
 
 class Reporter(DependentModuleModel, ReporterModel):
@@ -43,18 +44,8 @@ class Reporter(DependentModuleModel, ReporterModel):
     def report(self):
         """ Report """
         log.info("Sending mail to %s", self.config.get("mail_to"))
+        presenter = EMailPresenter(self.context, self.config)
         # Prepare email
-        subject = self.config.get(
-            "subject",
-            "{} {} {} {} {} scanning {} results".format(
-                self.context.get_meta("project_name", "UNKNOWN"),
-                self.context.get_meta("project_description", "Unnamed"),
-                self.context.get_meta("environment_name", "unknown"),
-                self.context.get_meta("testing_type", "UNKN"),
-                self.context.get_meta("scan_type", "unknown"),
-                self.context.get_meta("build_id", "#0"),
-            )
-        )
         environment = Environment(
             loader=PackageLoader(
                 "dusty",
@@ -63,13 +54,7 @@ class Reporter(DependentModuleModel, ReporterModel):
             autoescape=select_autoescape(["html", "xml"])
         )
         template = environment.get_template("email.html")
-        html_body = template.render(body="Please see the results attached.")
-        attachments = list()
-        # Attach HTML report (if any)
-        if self.context.performers["reporting"].get_module_meta("html", "report_file", None):
-            attachments.append(
-                self.context.performers["reporting"].get_module_meta("html", "report_file")
-            )
+        html_body = template.render(presenter=presenter)
         # Send email
         helper = EmailHelper(
             self.context,
@@ -80,7 +65,7 @@ class Reporter(DependentModuleModel, ReporterModel):
         )
         mail_to = [item.strip() for item in self.config.get("mail_to").split(",")]
         helper.send(
-            mail_to, subject, html_body=html_body, attachments=attachments
+            mail_to, presenter.subject, html_body=html_body, attachments=presenter.attachments
         )
 
     @staticmethod
