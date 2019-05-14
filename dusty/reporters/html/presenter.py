@@ -57,15 +57,20 @@ class HTMLPresenter:
             name="Project name",
             value=self.context.get_meta("project_name", "Unnamed Project")
         ))
-        if self.context.get_meta("dusty_version", None):
+        if self.context.get_meta("project_description", None):
             result.append(HTMLReportMeta(
-                name="Dusty version",
-                value=self.context.get_meta("dusty_version")
+                name="Application name",
+                value=self.context.get_meta("project_description")
             ))
-        if self.context.get_meta("scan_type", None):
+        if self.context.get_meta("environment_name", None):
             result.append(HTMLReportMeta(
-                name="Test type",
-                value=", ".join([item.upper() for item in self.context.get_meta("scan_type")])
+                name="Environment",
+                value=self.context.get_meta("environment_name")
+            ))
+        if self.context.get_meta("testing_type", None):
+            result.append(HTMLReportMeta(
+                name="Testing type",
+                value=self.context.get_meta("testing_type")
             ))
         if self.context.get_meta("dast_target", None):
             result.append(HTMLReportMeta(
@@ -76,6 +81,21 @@ class HTMLPresenter:
             result.append(HTMLReportMeta(
                 name="SAST code",
                 value=self.context.get_meta("sast_code")
+            ))
+        if self.context.get_meta("scan_type", None):
+            result.append(HTMLReportMeta(
+                name="Scan type",
+                value=self.context.get_meta("scan_type")
+            ))
+        if self.context.get_meta("build_id", None):
+            result.append(HTMLReportMeta(
+                name="Build ID",
+                value=self.context.get_meta("build_id")
+            ))
+        if self.context.get_meta("dusty_version", None):
+            result.append(HTMLReportMeta(
+                name="Dusty version",
+                value=self.context.get_meta("dusty_version")
             ))
         testing_time = self.context.performers["reporting"].get_module_meta(
             "time_meta", "testing_run_time", None
