@@ -48,7 +48,13 @@ class EMailPresenter:
     @property
     def body(self):
         """ Returns mail body """
-        return self.config.get("body", "Please see the results attached.")
+        return self.config.get(
+            "body",
+            "The following application was scanned: {} ({})".format(
+                self.context.get_meta("project_description", "Unnamed"),
+                self.context.get_meta("environment_name", "unknown"),
+            )
+        )
 
     @property
     def attachments(self):
